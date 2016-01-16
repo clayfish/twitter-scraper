@@ -14,26 +14,21 @@ import java.util.Map;
  * @since 8/4/15 00:55
  */
 public class JsoupWrapper {
-    private static final int TIMEOUT_IN_MILLISECONDS = 30000;
-    private static final String USER_AGENT_STRING = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36";
+    private final int timeoutInMilliseconds;
+    private final String userAgent;
 
     @Getter
     private Map<String, String> cookies;
-    @Getter
-    private boolean useProxy;
 
-    public JsoupWrapper() {
+    public JsoupWrapper(ApplicationProperties properties) {
         this.cookies = new HashMap<>();
-    }
-
-    public JsoupWrapper(boolean useProxy) {
-        this();
-        this.useProxy = useProxy;
+        this.userAgent = properties.getUserAgent();
+        this.timeoutInMilliseconds = properties.getConnectionTimeout();
     }
 
     public Connection connect(String url) {
-        return Jsoup.connect(url).userAgent(USER_AGENT_STRING)
-                .timeout(TIMEOUT_IN_MILLISECONDS).cookies(this.cookies);
+        return Jsoup.connect(url).userAgent(userAgent)
+                .timeout(timeoutInMilliseconds).cookies(this.cookies);
     }
 
     public Connection.Response execute(Connection connection, Connection.Method method) {
@@ -52,20 +47,6 @@ public class JsoupWrapper {
         }
         this.cookies = response.cookies();
         return response;
-    }
-
-    private void setSystemProperties() {
-        if (useProxy) {
-            System.setProperty("http.proxyHost", "67.212.175.123");
-            System.setProperty("http.proxyPort", "80");
-            System.setProperty("http.proxyUser", "freevpnaccess.com");
-            System.setProperty("http.proxyPassword", "4168");
-        } else {
-            System.clearProperty("http.proxyHost");
-            System.clearProperty("http.proxyPort");
-            System.clearProperty("http.proxyUser");
-            System.clearProperty("http.proxyPassword");
-        }
     }
 
     public Connection.Response execute(Connection connection) {
