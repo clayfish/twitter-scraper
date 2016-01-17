@@ -25,6 +25,11 @@ public class ApplicationProperties {
     private long startingTweetId;
 
     @Getter
+    @Property("target.last-tweet")
+    @Converters({"TO_LONG"})
+    private long lastTweetId;
+
+    @Getter
     @Property("output-folder")
     @Converters({"IN_OUTPUT_FOLDER", "TO_FILE"})
     private File outputFolder;

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -30,7 +31,7 @@ public abstract class AppUtils {
      */
     public static List<CSVRecord> readCsvFile(final File file, final long start, final long end) throws IOException {
         if (!file.exists() || start < 0 || end < 1) {
-            throw new IllegalArgumentException(String.format("%s should exist, start should be greater than -1 and end should be greater than 0", file.getName()));
+            throw new IllegalArgumentException(String.format("%s should exist, start(%d) should be greater than -1 and end(%d) should be greater than 0", file.getName(), start, end));
         }
 
         CSVParser csvParser = new CSVParser(new FileReader(file), CSVFormat.DEFAULT);
@@ -73,7 +74,11 @@ public abstract class AppUtils {
         CSVParser csvParser = new CSVParser(new FileReader(file), CSVFormat.DEFAULT);
 
         long count = StreamSupport.stream(csvParser.spliterator(), false).count();
-        return readNthRecord(file, count - 1);
+
+        if(count >0 ) {
+            return readNthRecord(file, count - 1);
+        }
+        return null;
     }
 
     /**
@@ -84,11 +89,16 @@ public abstract class AppUtils {
      * @return
      */
     public static <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
+        if(!file.exists()) {
+            boolean ignored = file.createNewFile();
+        }
         CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file), CSVFormat.DEFAULT);
 
         for(Object object : objects) {
-            csvPrinter.print(object);
+            csvPrinter.printRecord(Collections.singleton(object));
         }
+
+        csvPrinter.flush();
     }
 
 }

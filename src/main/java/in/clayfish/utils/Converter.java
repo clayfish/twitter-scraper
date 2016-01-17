@@ -10,9 +10,21 @@ import java.util.stream.Stream;
  */
 @FunctionalInterface
 public interface Converter<T, U> {
-    Converter<String, Long> TO_LONG = Long::parseLong;
-    Converter<String, Integer> TO_INT = Integer::parseInt;
-    Converter<String, Boolean> TO_BOOLEAN = Boolean::parseBoolean;
+    Converter<String, Long> TO_LONG = (src) -> {
+        if(src == null || src.isEmpty()) {
+            return 0L;
+        }
+        return Long.parseLong(src);
+    };
+
+    Converter<String, Integer> TO_INT = (src) -> {
+        if(src == null || src.isEmpty()) {
+            return 0;
+        }
+        return Integer.parseInt(src);
+    };
+
+    Converter<String, Boolean> TO_BOOLEAN = (src) -> !(src == null || src.isEmpty()) && Boolean.parseBoolean(src);
 
     Converter<String, File> TO_FILE = File::new;
     Converter<String, String> IN_OUTPUT_FOLDER = (src) -> String.format("%s/%s", System.getProperty("user.dir"), src);

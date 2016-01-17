@@ -43,6 +43,9 @@ public class JsoupWrapper {
      */
     public Connection connect(String url) {
         return Jsoup.connect(url).userAgent(userAgent)
+                .header("Accept", "application/json")
+                .ignoreContentType(true)
+                .ignoreHttpErrors(true)
                 .timeout(timeoutInMilliseconds).cookies(this.cookies);
     }
 
@@ -64,7 +67,7 @@ public class JsoupWrapper {
             e.printStackTrace();
             return null;
         }
-        this.cookies = response.cookies();
+        this.cookies.putAll(response.cookies());
         return response;
     }
 

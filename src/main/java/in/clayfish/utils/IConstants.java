@@ -9,4 +9,6 @@ public interface IConstants {
     String BLANK = "";
     String UNCHECKED = "unchecked";
     String MINUS = "-";
+    String SEPARATOR = "Tgdyu63t287iegdsafewfdswdd";
+    long MB_24 = 24 * 1024 * 1024; // in bytes
 }
