@@ -1,5 +1,6 @@
 package in.clayfish.utils;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.stream.Stream;
 
@@ -11,6 +12,9 @@ import java.util.stream.Stream;
 public interface Converter<T, U> {
     Converter<String, Long> TO_LONG = Long::parseLong;
     Converter<String, Integer> TO_INT = Integer::parseInt;
+    Converter<String, Boolean> TO_BOOLEAN = Boolean::parseBoolean;
+
+    Converter<String, File> TO_FILE = File::new;
     Converter<String, String> IN_OUTPUT_FOLDER = (src) -> String.format("%s/%s", System.getProperty("user.dir"), src);
 
     static Converter forString(final String name) {
@@ -19,7 +23,7 @@ public interface Converter<T, U> {
             return field1;
         }).filter(field1 -> field1.getName().equalsIgnoreCase(name)).findAny().orElse(null);
 
-        if(field != null) {
+        if (field != null) {
             try {
                 return (Converter) field.get(null);
             } catch (IllegalAccessException e) {

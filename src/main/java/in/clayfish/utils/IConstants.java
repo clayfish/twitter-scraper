@@ -7,4 +7,6 @@ package in.clayfish.utils;
 public interface IConstants {
     String COLON = ":";
     String BLANK = "";
+    String UNCHECKED = "unchecked";
+    String MINUS = "-";
 }

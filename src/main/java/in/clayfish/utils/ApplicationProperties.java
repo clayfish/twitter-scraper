@@ -4,6 +4,7 @@ import in.clayfish.annotations.Converters;
 import in.clayfish.annotations.Property;
 import lombok.Getter;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
@@ -14,21 +15,24 @@ import java.util.Properties;
  */
 public class ApplicationProperties {
 
-    private static String propertiesFile = "config/application.properties";
-
     @Getter
     @Property("target.username")
     private String targetUsername;
 
     @Getter
+    @Property("target.starting-tweet")
+    @Converters({"TO_LONG"})
+    private long startingTweetId;
+
+    @Getter
     @Property("output-folder")
-    @Converters({"IN_OUTPUT_FOLDER"})
-    private String outputFolder;
+    @Converters({"IN_OUTPUT_FOLDER", "TO_FILE"})
+    private File outputFolder;
 
     @Getter
     @Property("state-file")
-    @Converters({"IN_OUTPUT_FOLDER"})
-    private String stateFile;
+    @Converters({"IN_OUTPUT_FOLDER", "TO_FILE"})
+    private File stateFile;
 
     @Getter
     @Property("base-url")
@@ -42,6 +46,16 @@ public class ApplicationProperties {
     @Property("connection.timeout")
     @Converters({"TO_INT"})
     private int connectionTimeout;
+
+    @Getter
+    @Property("concurrent-threads")
+    @Converters({"TO_INT"})
+    private int numberOfConcurrentThreads;
+
+    @Getter
+    @Property("target.continue")
+    @Converters({"TO_BOOLEAN"})
+    private boolean toContinue;
 
     /**
      * Internal structure
@@ -69,9 +83,11 @@ public class ApplicationProperties {
 
     /**
      * Loads the config from properties file
+     *
      * @throws IOException If something goes south
      */
-    public ApplicationProperties() throws IOException {
+    @SuppressWarnings(IConstants.UNCHECKED)
+    public ApplicationProperties(final String propertiesFile) throws IOException {
         props = new Properties();
         props.load(this.getClass().getClassLoader().getResourceAsStream(propertiesFile));
 
@@ -80,11 +96,10 @@ public class ApplicationProperties {
             if (field.isAnnotationPresent(Property.class)) {
                 Object value = basicConverter.convert(props.getProperty(field.getAnnotation(Property.class).value()));
 
-                if(field.isAnnotationPresent(Converters.class)) {
-                    for(String converterString : field.getAnnotation(Converters.class).value()) {
+                if (field.isAnnotationPresent(Converters.class)) {
+                    for (String converterString : field.getAnnotation(Converters.class).value()) {
                         Converter converter = Converter.forString(converterString);
-
-                        if(converter != null) {
+                        if (converter != null) {
                             value = converter.convert(value);
                         }
                     }
@@ -99,6 +114,5 @@ public class ApplicationProperties {
             }
         }
     }
-
 
 }
