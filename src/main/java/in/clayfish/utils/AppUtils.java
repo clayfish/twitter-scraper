@@ -5,10 +5,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,13 +83,28 @@ public abstract class AppUtils {
      * @param file
      * @param objects
      * @param <T>
-     * @return
+     * @throws IOException
      */
     public static <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
+        writeToCsv(file, objects, true);
+    }
+
+    /**
+     *
+     * @param file
+     * @param objects
+     * @param <T>
+     * @return
+     */
+    public static <T> void writeToCsv(final File file, final List<T> objects, final boolean append) throws IOException {
         if(!file.exists()) {
-            boolean ignored = file.createNewFile();
+            boolean created = file.createNewFile();
+
+            if(!created) {
+                throw new FileNotFoundException(file.getName()+ " does not exist, nor could be created");
+            }
         }
-        CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file), CSVFormat.DEFAULT);
+        CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CSVFormat.DEFAULT);
 
         for(Object object : objects) {
             csvPrinter.printRecord(Collections.singleton(object));

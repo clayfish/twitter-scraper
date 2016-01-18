@@ -1,5 +1,6 @@
 package in.clayfish.utils;
 
+import in.clayfish.enums.Mode;
 import lombok.Getter;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -32,7 +33,7 @@ public class JsoupWrapper {
         this.userAgent = props.getUserAgent();
         this.timeoutInMilliseconds = props.getConnectionTimeout();
 
-        if(initialize) {
+        if (initialize) {
             this.init();
         }
     }
@@ -62,6 +63,10 @@ public class JsoupWrapper {
         }
 
         try {
+            System.out.println("Calling " + connection.request().url());
+            if (props.getMode() == Mode.TEST) {
+                return null;
+            }
             response = connection.execute();
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,5 +1,7 @@
 package in.clayfish.utils;
 
+import in.clayfish.enums.Mode;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.stream.Stream;
@@ -25,6 +27,8 @@ public interface Converter<T, U> {
     };
 
     Converter<String, Boolean> TO_BOOLEAN = (src) -> !(src == null || src.isEmpty()) && Boolean.parseBoolean(src);
+
+    Converter<String, Mode> TO_MODE = Mode::find;
 
     Converter<String, File> TO_FILE = File::new;
     Converter<String, String> IN_OUTPUT_FOLDER = (src) -> String.format("%s/%s", System.getProperty("user.dir"), src);

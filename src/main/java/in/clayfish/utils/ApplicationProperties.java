@@ -2,6 +2,7 @@ package in.clayfish.utils;
 
 import in.clayfish.annotations.Converters;
 import in.clayfish.annotations.Property;
+import in.clayfish.enums.Mode;
 import lombok.Getter;
 
 import java.io.File;
@@ -61,6 +62,11 @@ public class ApplicationProperties {
     @Property("target.continue")
     @Converters({"TO_BOOLEAN"})
     private boolean toContinue;
+
+    @Getter
+    @Property("mode")
+    @Converters({"TO_MODE"})
+    private Mode mode;
 
     /**
      * Internal structure

@@ -64,10 +64,12 @@ public class TweetIdExtractor extends Extractor {
         while (true) {
             // Only way out is when we get interrupted from outside the thread
             if (Thread.interrupted()) {
+                System.out.println("TweetIdExtractor is interrupted.");
                 break;
             }
 
             if (currentOutputFile.length() > IConstants.MB_24) {
+                System.out.println(currentOutputFile.getName() + " is overflowing, writing to new file now.");
                 index++;
                 currentOutputFile = new File(String.format("%s/first-level-%s-%d.csv", props.getOutputFolder().getPath(), label, index));
             }
@@ -83,6 +85,7 @@ public class TweetIdExtractor extends Extractor {
                 continue;
             }
             List<String> tweetIds = document.select("li.stream-item").stream().map(element -> element.attr("data-item-id")).collect(Collectors.toList());
+            System.out.println("Found "+ tweetIds.size() + " new tweets with replies.");
 
             try {
                 AppUtils.appendToCsv(currentOutputFile, tweetIds);
