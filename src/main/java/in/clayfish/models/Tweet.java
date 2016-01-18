@@ -1,9 +1,13 @@
 package in.clayfish.models;
 
+import in.clayfish.utils.Converter;
+import in.clayfish.utils.IConstants;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * The tweet
@@ -22,6 +26,31 @@ public class Tweet extends PersistentObject<Tweet> {
 
     @Override
     public Tweet fromRecord(String record) {
-        return null;
+        Objects.requireNonNull(record);
+        if(StringUtils.isBlank(record)) {
+            throw new IllegalArgumentException("record cannot be blank");
+        }
+
+        String[] tweetMetadata = record.split(IConstants.COMMA);
+
+        if(tweetMetadata.length<4) {
+            throw new IllegalArgumentException("record is malformed and cannot be converted to tweet object");
+        }
+
+        this.id = Converter.TO_LONG.convert(tweetMetadata[0]);
+        this.conversationId = Converter.TO_LONG.convert(tweetMetadata[1]);
+        this.timestamp = Converter.TO_DATE.convert(tweetMetadata[2]);
+        this.user = tweetMetadata[3];
+
+        if(tweetMetadata.length>4) {
+            this.message = tweetMetadata[4];
+        }
+
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%d,%d,%s,%s,%s", id, conversationId, Converter.DATE_TO_STRING.convert(timestamp), user, message.replaceAll(IConstants.COMMA, IConstants.BLANK));
     }
 }

@@ -44,15 +44,15 @@ public class TweetIdExtractor extends Extractor {
 
     @Override
     public void run() {
-            /* The steps are -
-             1. Fetch the url created by urlTemplate and startingTweetId
-             2. run decodeURI for the received response
-             3. Get all the li.stream-item and retrieve data-tweet-id
-             4. Save that tweet-id to "first-level-<thread-name>-1.csv" file in output folder
-             5. Repeat 1-4 with the tweet-id found at the last of the last first-level output file
-             6. When that CSV file has got approximately 24 MB (25165824 bytes), start saving in "first-level-<thread-name>-2.csv" and so on
-             7. At the end of it you'll have a lot of tweet IDs with replies to look into
-            */
+        /* The steps are -
+         1. Fetch the url created by urlTemplate and startingTweetId
+         2. run decodeURI for the received response
+         3. Get all the li.stream-item and retrieve data-tweet-id
+         4. Save that tweet-id to "first-level-<thread-name>-1.csv" file in output folder
+         5. Repeat 1-4 with the tweet-id found at the last of the last first-level output file
+         6. When that CSV file has got approximately 24 MB (25165824 bytes), start saving in "first-level-<thread-name>-2.csv" and so on
+         7. At the end of it you'll have a lot of tweet IDs with replies to look into
+        */
 
 
         final String label = Thread.currentThread().getName();
@@ -86,7 +86,7 @@ public class TweetIdExtractor extends Extractor {
                 continue;
             }
             List<String> tweetIds = document.select("li.stream-item").stream().map(element -> element.attr("data-item-id")).collect(Collectors.toList());
-            System.out.println("Found "+ tweetIds.size() + " new tweets with replies.");
+            System.out.println("Found " + tweetIds.size() + " new tweets with replies.");
 
             try {
                 AppUtils.appendToCsv(currentOutputFile, tweetIds);

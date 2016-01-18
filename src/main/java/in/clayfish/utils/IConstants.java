@@ -1,5 +1,7 @@
 package in.clayfish.utils;
 
+import java.text.SimpleDateFormat;
+
 /**
  * @author shuklaalok7
  * @since 16/01/16
@@ -13,4 +15,6 @@ public interface IConstants {
     @Deprecated
     String SEPARATOR = "Tgdyu63t287iegdsafewfdswdd";
     long MB_24 = 24 * 1024 * 1024; // in bytes
+    String COMMA = ";";
+    SimpleDateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 }

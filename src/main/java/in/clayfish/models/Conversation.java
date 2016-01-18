@@ -3,7 +3,7 @@ package in.clayfish.models;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author shuklaalok7
@@ -13,5 +13,6 @@ import java.util.List;
 @Setter
 public class Conversation {
     private long id;
-    private List<Tweet> tweets;
+    private Set<Tweet> tweets;
+    private Set<Long> tweetIds;
 }

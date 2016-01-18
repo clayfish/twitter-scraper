@@ -30,7 +30,7 @@ public class ConversationExtractor extends Extractor {
             }
 
             List<String> contents = new ArrayList<>();
-            contents.add("0");
+            contents.add("1,0");
             AppUtils.writeToCsv(counterFile, contents, false);
         }
     }

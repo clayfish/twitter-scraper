@@ -1,9 +1,12 @@
 package in.clayfish.utils;
 
 import in.clayfish.enums.Mode;
+import in.clayfish.models.Tweet;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.stream.Stream;
 
 /**
@@ -27,11 +30,21 @@ public interface Converter<T, U> {
     };
 
     Converter<String, Boolean> TO_BOOLEAN = (src) -> !(src == null || src.isEmpty()) && Boolean.parseBoolean(src);
-
     Converter<String, Mode> TO_MODE = Mode::find;
 
     Converter<String, File> TO_FILE = File::new;
     Converter<String, String> IN_OUTPUT_FOLDER = (src) -> String.format("%s/%s", System.getProperty("user.dir"), src);
+    Converter<Date, String> DATE_TO_STRING = IConstants.SIMPLE_DATE_FORMATTER::format;
+
+    Converter<String, Date> TO_DATE = (src) -> {
+        try {
+            return IConstants.SIMPLE_DATE_FORMATTER.parse(src);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e);
+        }
+    };
+
+    Converter<String, Tweet> TO_TWEET = (src) -> new Tweet().fromRecord(src);
 
     static Converter forString(final String name) {
         Field field = Stream.of(Converter.class.getDeclaredFields()).map(field1 -> {
