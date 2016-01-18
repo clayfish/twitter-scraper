@@ -1,6 +1,6 @@
 package in.clayfish;
 
-import in.clayfish.extractors.TweetIdExtractor;
+import in.clayfish.extractors.ConversationExtractor;
 import in.clayfish.utils.ApplicationProperties;
 
 import java.io.IOException;
@@ -26,7 +26,8 @@ public class TwitterScraper {
         startTime = System.currentTimeMillis();
 
         ExecutorService executorService = Executors.newFixedThreadPool(props.getNumberOfConcurrentThreads());
-        executorService.submit(new TweetIdExtractor(props));
+//        executorService.submit(new TweetIdExtractor(props));
+        executorService.submit(new ConversationExtractor(props));
 
         // We may want to spawn more than one conversationExtractors one for each first-level output file
 //        executorService.submit(new ConversationExtractor(props));

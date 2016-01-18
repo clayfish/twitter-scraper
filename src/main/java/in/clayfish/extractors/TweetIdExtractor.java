@@ -32,7 +32,7 @@ public class TweetIdExtractor extends Extractor {
         this.urlTemplate = String.format("https://twitter.com/i/profiles/show/%s/timeline/with_replies?include_available_features=1&include_entities=1&last_note_ts=123&max_position=%%d&reset_error_state=false",
                 props.getTargetUsername());
         this.startingTweetId = props.getStartingTweetId();
-        this.startingTweetId = Converter.TO_LONG.convert(this.getLastTweetIdAndIndex().split(IConstants.SEPARATOR)[0]);
+        this.startingTweetId = this.getLastTweetId();
 
         try {
             this.jsoupWrapper = new JsoupWrapper(props, true);
@@ -56,9 +56,11 @@ public class TweetIdExtractor extends Extractor {
 
 
         final String label = Thread.currentThread().getName();
-        int index = Converter.TO_INT.convert(getLastTweetIdAndIndex().split(IConstants.SEPARATOR)[1]);
-        File currentOutputFile = new File(String.format("%s/first-level-%s-%d.csv", props.getOutputFolder().getPath(), label, index));
+        File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);
         long currentTweetId = startingTweetId;
+
+        System.out.println("Started thread: " + label);
+        System.out.println("startingTweetId: " + startingTweetId);
 
         // Keep fetching and writing the tweet IDs
         while (true) {
@@ -70,8 +72,7 @@ public class TweetIdExtractor extends Extractor {
 
             if (currentOutputFile.length() > IConstants.MB_24) {
                 System.out.println(currentOutputFile.getName() + " is overflowing, writing to new file now.");
-                index++;
-                currentOutputFile = new File(String.format("%s/first-level-%s-%d.csv", props.getOutputFolder().getPath(), label, index));
+                currentOutputFile = AppUtils.createNewOutputFile(1, props);
             }
 
             Connection connection = jsoupWrapper.connect(String.format(urlTemplate, currentTweetId));
@@ -96,35 +97,20 @@ public class TweetIdExtractor extends Extractor {
             currentTweetId = Converter.TO_LONG.convert(tweetIds.get(tweetIds.size() - 1));
         }
 
-        System.out.println("Thread name: " + label);
-        System.out.println("startingTweetId: " + startingTweetId);
-        System.out.println("urlTemplate: " + urlTemplate);
-
     }
 
 
     /**
      * @return
      */
-    private String getLastTweetIdAndIndex() {
+    private long getLastTweetId() {
         long lastTweetId = startingTweetId;
 
-        File latestOutputFile = null;
-        int largestIndex = 0;
+        File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);
 
-        for (File firstLevelOutputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith("first-level-") && name.endsWith(".csv"))) {
-            String[] nameParts = firstLevelOutputFile.getName().split(IConstants.MINUS);
-            int index = Converter.TO_INT.convert(nameParts[nameParts.length - 1].replace(".csv", IConstants.BLANK));
-
-            if (index > largestIndex) {
-                largestIndex = index;
-                latestOutputFile = firstLevelOutputFile;
-            }
-        }
-
-        if (latestOutputFile != null) {
+        if (currentOutputFile != null) {
             try {
-                CSVRecord lastRecord = AppUtils.readLastRecord(latestOutputFile);
+                CSVRecord lastRecord = AppUtils.readLastRecord(currentOutputFile);
                 if (lastRecord != null) {
                     lastTweetId = Converter.TO_LONG.convert(lastRecord.get(0));
                 }
@@ -133,6 +119,6 @@ public class TweetIdExtractor extends Extractor {
             }
         }
 
-        return lastTweetId + IConstants.SEPARATOR + largestIndex;
+        return lastTweetId;
     }
 }
