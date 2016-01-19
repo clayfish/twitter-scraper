@@ -29,13 +29,18 @@ public class TweetIdExtractor extends Extractor {
 
     public TweetIdExtractor(final ApplicationProperties props) {
         super(props);
-        this.urlTemplate = String.format("https://twitter.com/i/profiles/show/%s/timeline/with_replies?include_available_features=1&include_entities=1&last_note_ts=123&max_position=%%d&reset_error_state=false",
-                props.getTargetUsername());
+        this.urlTemplate = String.format("https://twitter.com/i/search/timeline?f=tweets&vertical=default&q=from%%%%3A%s&src=typd&include_available_features=1&include_entities=1&last_note_ts=300&max_position=TWEET-%%d-%d-BD1UO2FFu9QAAAAAAAAETAAAAAcAAAASAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&reset_error_state=false",
+                props.getTargetUsername(), props.getStartingTweetId());
         this.startingTweetId = props.getStartingTweetId();
         this.startingTweetId = this.getLastFetchedTweetId();
 
         try {
-            this.jsoupWrapper = new JsoupWrapper(props, true);
+            this.jsoupWrapper = new JsoupWrapper(props, false);
+
+            // Following call is to set the mood of the wrapper
+            Connection connection = this.jsoupWrapper.connect(String.format("https://twitter.com/search?f=tweets&vertical=default&q=from%%3A%s&src=typd",
+                    props.getTargetUsername()));
+            this.jsoupWrapper.get(connection);
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException(e);
