@@ -36,7 +36,7 @@ public class TwitterScraper {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!executorService.isTerminated()) {
                 System.out.println("Performing some shutdown cleanup...");
-                executorService.shutdown();
+                executorService.shutdownNow();
                 while (true) {
                     try {
                         System.out.println("Waiting for the service to terminate...");

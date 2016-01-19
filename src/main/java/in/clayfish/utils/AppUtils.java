@@ -20,6 +20,8 @@ import java.util.stream.StreamSupport;
  */
 public abstract class AppUtils {
 
+    private static final CSVFormat CUSTOM = CSVFormat.DEFAULT.withQuote(null);
+
     /**
      * @param file
      * @param start
@@ -32,7 +34,7 @@ public abstract class AppUtils {
             throw new IllegalArgumentException(String.format("%s should exist, start(%d) should be greater than -1 and end(%d) should be greater than 0", file.getName(), start, end));
         }
 
-        CSVParser csvParser = new CSVParser(new FileReader(file), CSVFormat.DEFAULT);
+        CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
 
         return StreamSupport.stream(csvParser.spliterator(), false).skip(start).limit(end - start).collect(Collectors.toList());
     }
@@ -67,12 +69,14 @@ public abstract class AppUtils {
      * @throws IOException
      */
     public static CSVRecord readLastRecord(final File file) throws IOException {
-        CSVParser csvParser = new CSVParser(new FileReader(file), CSVFormat.DEFAULT);
+        if (file.exists()) {
+            CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
 
-        long count = StreamSupport.stream(csvParser.spliterator(), false).count();
+            long count = StreamSupport.stream(csvParser.spliterator(), false).count();
 
-        if (count > 0) {
-            return readNthRecord(file, count - 1);
+            if (count > 0) {
+                return readNthRecord(file, count - 1);
+            }
         }
         return null;
     }
@@ -85,6 +89,26 @@ public abstract class AppUtils {
      */
     public static <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
         writeToCsv(file, objects, true);
+    }
+
+    public static <T> void writeToCsv(final File file, final T object, final boolean append) throws IOException {
+        if (!file.exists()) {
+            boolean created = file.createNewFile();
+
+            if (!created) {
+                throw new FileNotFoundException(file.getName() + " does not exist, nor could be created");
+            }
+        }
+        CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CUSTOM);
+        if (object instanceof String) {
+            System.out.println("Printing "+object);
+            csvPrinter.print(object);
+            csvPrinter.println();
+        } else {
+            csvPrinter.printRecord(Collections.singleton(object));
+        }
+
+        csvPrinter.flush();
     }
 
     /**
@@ -101,7 +125,7 @@ public abstract class AppUtils {
                 throw new FileNotFoundException(file.getName() + " does not exist, nor could be created");
             }
         }
-        CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CSVFormat.DEFAULT);
+        CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CUSTOM);
 
         for (Object object : objects) {
             csvPrinter.printRecord(Collections.singleton(object));
@@ -117,12 +141,18 @@ public abstract class AppUtils {
      * @param props
      * @return
      */
-    public static synchronized File createNewOutputFile(final int step, final ApplicationProperties props) {
+    public static synchronized File createNewOutputFile(final int step, final ApplicationProperties props) throws IOException {
         Objects.requireNonNull(props);
 
         String prefix = getOutputFilePrefix(step);
         int currentIndex = getCurrentOutputFileIndex(prefix, props);
-        return new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex + 1));
+        File newOutputFile = new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex + 1));
+        boolean created = newOutputFile.createNewFile();
+
+        if(!created) {
+            throw new IllegalStateException("Cannot create new output file for "+ getOutputFilePrefix(step));
+        }
+        return newOutputFile;
     }
 
     /**
@@ -135,6 +165,11 @@ public abstract class AppUtils {
 
         String prefix = getOutputFilePrefix(step);
         int currentIndex = getCurrentOutputFileIndex(prefix, props);
+
+        if (currentIndex == 0) {
+            currentIndex++;
+        }
+
         return new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex));
     }
 
@@ -164,10 +199,10 @@ public abstract class AppUtils {
      */
     private synchronized static String getOutputFilePrefix(final int step) {
         switch (step) {
-            case 0:
+            case 1:
                 return "first-level-";
 
-            case 1:
+            case 2:
                 return "second-level-";
 
             default:

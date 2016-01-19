@@ -32,7 +32,7 @@ public class TweetIdExtractor extends Extractor {
         this.urlTemplate = String.format("https://twitter.com/i/profiles/show/%s/timeline/with_replies?include_available_features=1&include_entities=1&last_note_ts=123&max_position=%%d&reset_error_state=false",
                 props.getTargetUsername());
         this.startingTweetId = props.getStartingTweetId();
-        this.startingTweetId = this.getLastTweetId();
+        this.startingTweetId = this.getLastFetchedTweetId();
 
         try {
             this.jsoupWrapper = new JsoupWrapper(props, true);
@@ -62,8 +62,8 @@ public class TweetIdExtractor extends Extractor {
         System.out.println("Started thread: " + label);
         System.out.println("startingTweetId: " + startingTweetId);
 
-        // Keep fetching and writing the tweet IDs
-        while (true) {
+        // Keep fetching and writing the tweet IDs until the last id, configured in application.properties is fetched
+        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched; ) {
             // Only way out is when we get interrupted from outside the thread
             if (Thread.interrupted()) {
                 System.out.println("TweetIdExtractor is interrupted.");
@@ -72,7 +72,12 @@ public class TweetIdExtractor extends Extractor {
 
             if (currentOutputFile.length() > IConstants.MB_24) {
                 System.out.println(currentOutputFile.getName() + " is overflowing, writing to new file now.");
-                currentOutputFile = AppUtils.createNewOutputFile(1, props);
+                try {
+                    currentOutputFile = AppUtils.createNewOutputFile(1, props);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
             }
 
             Connection connection = jsoupWrapper.connect(String.format(urlTemplate, currentTweetId));
@@ -86,6 +91,12 @@ public class TweetIdExtractor extends Extractor {
                 continue;
             }
             List<String> tweetIds = document.select("li.stream-item").stream().map(element -> element.attr("data-item-id")).collect(Collectors.toList());
+
+            if (props.getLastTweetId() != null && !props.getLastTweetId().isEmpty() && tweetIds.contains(props.getLastTweetId())) {
+                tweetIds = tweetIds.subList(0, tweetIds.indexOf(props.getLastTweetId()));
+                lastTweetIdFetched = true;
+            }
+
             System.out.println("Found " + tweetIds.size() + " new tweets with replies.");
 
             try {
@@ -103,7 +114,7 @@ public class TweetIdExtractor extends Extractor {
     /**
      * @return
      */
-    private long getLastTweetId() {
+    private long getLastFetchedTweetId() {
         long lastTweetId = startingTweetId;
 
         File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);

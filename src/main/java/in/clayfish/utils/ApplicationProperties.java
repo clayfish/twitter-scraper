@@ -27,8 +27,8 @@ public class ApplicationProperties {
 
     @Getter
     @Property("target.last-tweet")
-    @Converters({"TO_LONG"})
-    private long lastTweetId;
+//    @Converters({"TO_LONG"})
+    private String lastTweetId;
 
     @Getter
     @Property("output-folder")

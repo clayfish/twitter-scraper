@@ -17,4 +17,5 @@ public interface IConstants {
     long MB_24 = 24 * 1024 * 1024; // in bytes
     String COMMA = ";";
     SimpleDateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+    String SPACE = " ";
 }
