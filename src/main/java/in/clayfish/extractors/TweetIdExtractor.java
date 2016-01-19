@@ -84,17 +84,25 @@ public class TweetIdExtractor extends Extractor {
                     Thread.currentThread().interrupt();
                 }
             }
+            Document document = null;
 
-            Connection connection = jsoupWrapper.connect(String.format(urlTemplate, currentTweetId));
-            Connection.Response response = jsoupWrapper.execute(connection);
-            Document document;
-            try {
-                document = Jsoup.parse((String) ((JSONObject) new JSONParser().parse(response.body())).get("items_html"));
-            } catch (ParseException e) {
-                e.printStackTrace();
+            for(int reattempts = 0; reattempts < 3;) {
+                Connection connection = jsoupWrapper.connect(String.format(urlTemplate, currentTweetId));
+                Connection.Response response = jsoupWrapper.execute(connection);
+                try {
+                    document = Jsoup.parse((String) ((JSONObject) new JSONParser().parse(response.body())).get("items_html"));
+                    break;
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    reattempts++;
+                }
+            }
+
+            if(document == null) {
                 Thread.currentThread().interrupt();
                 continue;
             }
+
             List<String> tweetIds = document.select("li.stream-item").stream().map(element -> element.attr("data-item-id")).collect(Collectors.toList());
 
             if (props.getLastTweetId() != null && !props.getLastTweetId().isEmpty() && tweetIds.contains(props.getLastTweetId())) {
