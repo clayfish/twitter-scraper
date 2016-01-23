@@ -21,20 +21,26 @@ public class ConversationExtractor extends Extractor {
     private final JsoupWrapper jsoupWrapper;
     private final File counterFile;
     private final String urlTemplate;
+    private final int threadNumber;
 
-    public ConversationExtractor(final ApplicationProperties props) throws IOException {
+    public ConversationExtractor(final ApplicationProperties props, final int threadNumber, final long recordsToProcess) throws IOException {
         super(props);
-        counterFile = new File(String.format("%s/%s", props.getOutputFolder(), "counter-second-level.csv"));
+        this.threadNumber = threadNumber;
+        counterFile = new File(String.format("%s/%s-%d.csv", props.getOutputFolder(), "counter-second-level", threadNumber));
         urlTemplate = String.format("https://twitter.com/%s/status/%%s", props.getTargetUsername());
 
         if (!counterFile.exists()) {
             boolean created = counterFile.createNewFile();
             if (!created) {
-                throw new IllegalStateException("second-level-counter.csv does not exist and could not be created.");
+                throw new IllegalStateException("Thread "+ threadNumber +": second-level-counter.csv does not exist and could not be created.");
             }
 
             List<String> contents = new ArrayList<>();
-            contents.add("1,0");
+            if (threadNumber<(props.getNumberOfConcurrentThreads()-1)) {
+                contents.add(String.format("1,%d,%d", threadNumber*recordsToProcess, (threadNumber+1)*recordsToProcess));
+            } else {
+                contents.add(String.format("1,%d,%d", threadNumber*recordsToProcess, 132437));
+            }
             AppUtils.writeToCsv(counterFile, contents, false);
         }
 
@@ -44,28 +50,30 @@ public class ConversationExtractor extends Extractor {
     @Override
     public void run() {
         int currentLineIndex, currentFileIndex;
+        final int lastLineIndex;
         File currentInputFile, currentOutputFile;
 
         try {
             CSVRecord stateRecord = AppUtils.readFirstRecord(counterFile);
-            currentFileIndex = Converter.TO_INT.convert(stateRecord.get(0));
-            currentLineIndex = Converter.TO_INT.convert(stateRecord.get(1));
+            currentFileIndex = Converter.TO_INT.apply(stateRecord.get(0));
+            currentLineIndex = Converter.TO_INT.apply(stateRecord.get(1));
+            lastLineIndex = Converter.TO_INT.apply(stateRecord.get(2));
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException("Could not find the line number to start fetching the conversations");
         }
 
         currentInputFile = new File(String.format("%s/first-level-%d.csv", props.getOutputFolder().getPath(), currentFileIndex));
-        currentOutputFile = AppUtils.getCurrentOutputFile(2, props);
+        currentOutputFile = AppUtils.getCurrentOutputFile(2, props, threadNumber);
 
-        while (currentInputFile.exists()) {
+        while (currentInputFile.exists() && currentLineIndex<lastLineIndex) {
             if (Thread.interrupted()) {
                 try {
-                    AppUtils.writeToCsv(counterFile, String.format("%d,%d", currentFileIndex, currentLineIndex), false);
+                    AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentFileIndex, currentLineIndex,lastLineIndex), false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(this.getClass().getName() + " is interrupted");
+                System.out.println(String.format("Thread %d: %s is interrupted", threadNumber, this.getClass().getSimpleName()));
                 break;
             }
 
@@ -93,6 +101,7 @@ public class ConversationExtractor extends Extractor {
 
             String tweetId = csvRecord.get(0);
 
+            System.out.println(String.format("Thread %d: Line %d - %s", threadNumber, currentLineIndex, tweetId));
             Connection connection = jsoupWrapper.connect(String.format(urlTemplate, tweetId));
             final Document document;
             try {
@@ -108,7 +117,7 @@ public class ConversationExtractor extends Extractor {
                 continue;
             }
 
-            StringBuilder conversation = new StringBuilder();
+            StringBuilder conversation = new StringBuilder(tweetId).append(" ");
             for (Element streamItem : document.select("div.permalink-in-reply-tos li.stream-item")) {
                 conversation.append(convertToString(streamItem));
             }
@@ -131,9 +140,10 @@ public class ConversationExtractor extends Extractor {
             }
 
             if (currentOutputFile.length() > IConstants.MB_24) {
-                System.out.println("Reached 24 MB limit. Creating new output file");
+                System.out.println("Thread "+ threadNumber +": Reached 24 MB limit. Creating new output file");
                 try {
-                    currentOutputFile = AppUtils.createNewOutputFile(2, props);
+                    currentOutputFile = AppUtils.createNewOutputFile(2, props, threadNumber);
+                    currentFileIndex = AppUtils.getCurrentOutputFileIndex(2, props);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Thread.currentThread().interrupt();
@@ -142,7 +152,7 @@ public class ConversationExtractor extends Extractor {
         }
 
         try {
-            AppUtils.writeToCsv(counterFile, String.format("%d,%d", currentFileIndex, currentLineIndex), false);
+            AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentFileIndex, currentLineIndex, lastLineIndex), false);
         } catch (IOException e) {
             e.printStackTrace();
         }

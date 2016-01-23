@@ -118,7 +118,7 @@ public class TweetIdExtractor extends Extractor {
                 e.printStackTrace();
             }
 
-            currentTweetId = Converter.TO_LONG.convert(tweetIds.get(tweetIds.size() - 1));
+            currentTweetId = Converter.TO_LONG.apply(tweetIds.get(tweetIds.size() - 1));
         }
 
     }
@@ -136,7 +136,7 @@ public class TweetIdExtractor extends Extractor {
             try {
                 CSVRecord lastRecord = AppUtils.readLastRecord(currentOutputFile);
                 if (lastRecord != null) {
-                    lastTweetId = Converter.TO_LONG.convert(lastRecord.get(0));
+                    lastTweetId = Converter.TO_LONG.apply(lastRecord.get(0));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

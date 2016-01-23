@@ -29,9 +29,10 @@ public abstract class AppUtils {
      * @return
      * @throws IOException
      */
-    public static List<CSVRecord> readCsvFile(final File file, final long start, final long end) throws IOException {
+    public static synchronized List<CSVRecord> readCsvFile(final File file, final long start, final long end) throws IOException {
         if (!file.exists() || start < 0 || end < 1) {
-            throw new IllegalArgumentException(String.format("%s should exist, start(%d) should be greater than -1 and end(%d) should be greater than 0", file.getName(), start, end));
+            throw new IllegalArgumentException(String.format(
+                    "%s should exist, start(%d) should be greater than -1 and end(%d) should be greater than 0", file.getName(), start, end));
         }
 
         CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
@@ -44,7 +45,7 @@ public abstract class AppUtils {
      * @return
      * @throws IOException
      */
-    public static CSVRecord readFirstRecord(final File file) throws IOException {
+    public static synchronized CSVRecord readFirstRecord(final File file) throws IOException {
         return readNthRecord(file, 0);
     }
 
@@ -54,7 +55,7 @@ public abstract class AppUtils {
      * @return
      * @throws IOException
      */
-    public static CSVRecord readNthRecord(final File file, long n) throws IOException {
+    public static synchronized CSVRecord readNthRecord(final File file, long n) throws IOException {
         List<CSVRecord> result = readCsvFile(file, n, n + 1);
         if (result != null && !result.isEmpty()) {
             return result.get(0);
@@ -68,7 +69,7 @@ public abstract class AppUtils {
      * @return
      * @throws IOException
      */
-    public static CSVRecord readLastRecord(final File file) throws IOException {
+    public static synchronized CSVRecord readLastRecord(final File file) throws IOException {
         if (file.exists()) {
             CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
 
@@ -87,11 +88,11 @@ public abstract class AppUtils {
      * @param <T>
      * @throws IOException
      */
-    public static <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
+    public static synchronized <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
         writeToCsv(file, objects, true);
     }
 
-    public static <T> void writeToCsv(final File file, final T object, final boolean append) throws IOException {
+    public static synchronized <T> void writeToCsv(final File file, final T object, final boolean append) throws IOException {
         if (!file.exists()) {
             boolean created = file.createNewFile();
 
@@ -101,7 +102,7 @@ public abstract class AppUtils {
         }
         CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CUSTOM);
         if (object instanceof String) {
-            System.out.println("Printing "+object);
+            System.out.println("Printing " + object);
             csvPrinter.print(object);
             csvPrinter.println();
         } else {
@@ -117,7 +118,7 @@ public abstract class AppUtils {
      * @param <T>
      * @return
      */
-    public static <T> void writeToCsv(final File file, final List<T> objects, final boolean append) throws IOException {
+    public static synchronized <T> void writeToCsv(final File file, final List<T> objects, final boolean append) throws IOException {
         if (!file.exists()) {
             boolean created = file.createNewFile();
 
@@ -135,6 +136,32 @@ public abstract class AppUtils {
     }
 
     /**
+     * @param step
+     * @param props
+     * @param threadNumber
+     * @return
+     * @throws IOException
+     */
+    public static synchronized File createNewOutputFile(final int step, final ApplicationProperties props, final int threadNumber) throws IOException {
+        Objects.requireNonNull(props);
+
+        if (threadNumber > props.getNumberOfConcurrentThreads()) {
+            throw new IllegalStateException(String.format("Thread %d: Threads should be less than maximum number of threads(%d)", threadNumber,
+                    props.getNumberOfConcurrentThreads()));
+        }
+
+        String prefix = getOutputFilePrefix(step);
+        int currentIndex = getCurrentOutputFileIndex(prefix, props);
+        File newOutputFile = new File(String.format("%s/%s%d-%d.csv", props.getOutputFolder().getPath(), prefix, threadNumber, currentIndex + 1));
+        boolean created = newOutputFile.createNewFile();
+
+        if (!created) {
+            throw new IllegalStateException(String.format("Thread %d: Cannot create new output file for %s", threadNumber, getOutputFilePrefix(step)));
+        }
+        return newOutputFile;
+    }
+
+    /**
      * Thread-safe
      *
      * @param step
@@ -149,10 +176,34 @@ public abstract class AppUtils {
         File newOutputFile = new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex + 1));
         boolean created = newOutputFile.createNewFile();
 
-        if(!created) {
-            throw new IllegalStateException("Cannot create new output file for "+ getOutputFilePrefix(step));
+        if (!created) {
+            throw new IllegalStateException("Cannot create new output file for " + getOutputFilePrefix(step));
         }
         return newOutputFile;
+    }
+
+    /**
+     * @param step
+     * @param props
+     * @param threadNumber
+     * @return
+     */
+    public static synchronized File getCurrentOutputFile(final int step, final ApplicationProperties props, final int threadNumber) {
+        Objects.requireNonNull(props);
+
+        if (threadNumber > props.getNumberOfConcurrentThreads()) {
+            throw new IllegalStateException(String.format("Thread %d: Threads should be less than maximum number of threads(%d)", threadNumber,
+                    props.getNumberOfConcurrentThreads()));
+        }
+
+        String prefix = getOutputFilePrefix(step);
+        int currentIndex = getCurrentOutputFileIndex(prefix, props);
+
+        if (currentIndex == 0) {
+            currentIndex++;
+        }
+
+        return new File(String.format("%s/%s%d-%d.csv", props.getOutputFolder().getPath(), prefix, threadNumber, currentIndex));
     }
 
     /**
@@ -173,17 +224,20 @@ public abstract class AppUtils {
         return new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex));
     }
 
+    public static synchronized int getCurrentOutputFileIndex(final int step, final ApplicationProperties props) {
+        return getCurrentOutputFileIndex(getOutputFilePrefix(step), props);
+    }
+
     /**
      * @param prefix
      * @param props
      * @return
      */
-    private static synchronized int getCurrentOutputFileIndex(final String prefix, final ApplicationProperties props) {
+    public static synchronized int getCurrentOutputFileIndex(final String prefix, final ApplicationProperties props) {
         int maxIndex = 0;
-        for (File firstLevelOutputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix)
-                && name.endsWith(".csv"))) {
+        for (File firstLevelOutputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
             String[] nameParts = firstLevelOutputFile.getName().split(IConstants.MINUS);
-            int index = Converter.TO_INT.convert(nameParts[nameParts.length - 1].replace(".csv", IConstants.BLANK));
+            int index = Converter.TO_INT.apply(nameParts[nameParts.length - 1].replace(".csv", IConstants.BLANK));
 
             if (index > maxIndex) {
                 maxIndex = index;

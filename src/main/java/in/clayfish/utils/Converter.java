@@ -7,6 +7,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
  * @since 16/01/16
  */
 @FunctionalInterface
-public interface Converter<T, U> {
+public interface Converter<T, U> extends Function<T, U> {
     Converter<String, Long> TO_LONG = (src) -> {
         if(src == null || src.isEmpty()) {
             return 0L;
@@ -63,6 +64,6 @@ public interface Converter<T, U> {
         return null;
     }
 
-    U convert(T t);
+//    U convert(T t);
 
 }

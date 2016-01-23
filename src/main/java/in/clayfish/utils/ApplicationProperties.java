@@ -78,7 +78,7 @@ public class ApplicationProperties {
      */
     Converter<String, String> basicConverter = new Converter<String, String>() {
         @Override
-        public String convert(String src) {
+        public String apply(String src) {
             if (!src.contains("${")) {
                 return src;
             }
@@ -88,7 +88,7 @@ public class ApplicationProperties {
 
             String property = ApplicationProperties.this.props.getProperty(src.substring(low + 2, high));
             String convertedString = src.substring(0, low) + property + src.substring(high + 1, src.length());
-            return this.convert(convertedString);
+            return this.apply(convertedString);
         }
     };
 
@@ -105,13 +105,13 @@ public class ApplicationProperties {
         for (Field field : this.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             if (field.isAnnotationPresent(Property.class)) {
-                Object value = basicConverter.convert(props.getProperty(field.getAnnotation(Property.class).value()));
+                Object value = basicConverter.apply(props.getProperty(field.getAnnotation(Property.class).value()));
 
                 if (field.isAnnotationPresent(Converters.class)) {
                     for (String converterString : field.getAnnotation(Converters.class).value()) {
                         Converter converter = Converter.forString(converterString);
                         if (converter != null) {
-                            value = converter.convert(value);
+                            value = converter.apply(value);
                         }
                     }
                 }
