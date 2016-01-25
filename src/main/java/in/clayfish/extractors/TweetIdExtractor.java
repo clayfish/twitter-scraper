@@ -60,15 +60,16 @@ public class TweetIdExtractor extends Extractor {
         */
 
 
-        final String label = Thread.currentThread().getName();
+        final String label = String.format("Thread %d:", 0);
         File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);
         long currentTweetId = startingTweetId;
 
-        System.out.println("Started thread: " + label);
-        System.out.println("startingTweetId: " + startingTweetId);
+        System.out.println(String.format("%s Started thread: %1$s", label));
+        System.out.println(label+ " startingTweetId: " + startingTweetId);
 
+        int reattempt=0;
         // Keep fetching and writing the tweet IDs until the last id, configured in application.properties is fetched
-        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched; ) {
+        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched || reattempt>5;) {
             // Only way out is when we get interrupted from outside the thread
             if (Thread.interrupted()) {
                 System.out.println("TweetIdExtractor is interrupted.");
@@ -110,7 +111,12 @@ public class TweetIdExtractor extends Extractor {
                 lastTweetIdFetched = true;
             }
 
-            System.out.println("Found " + tweetIds.size() + " new tweets with replies.");
+            System.out.println(String.format("%s Found %d new tweets with replies.", label, tweetIds.size()));
+
+            if(tweetIds.size() == 0) {
+                reattempt++;
+                continue;
+            }
 
             try {
                 AppUtils.appendToCsv(currentOutputFile, tweetIds);
@@ -125,9 +131,9 @@ public class TweetIdExtractor extends Extractor {
 
 
     /**
-     * @return
+     * @return last fetched ID found in the output folder
      */
-    private long getLastFetchedTweetId() {
+    private synchronized long getLastFetchedTweetId() {
         long lastTweetId = startingTweetId;
 
         File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);

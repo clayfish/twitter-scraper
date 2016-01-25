@@ -1,6 +1,7 @@
 package in.clayfish;
 
 import in.clayfish.extractors.ConversationExtractor;
+import in.clayfish.extractors.TweetIdExtractor;
 import in.clayfish.utils.ApplicationProperties;
 
 import java.io.IOException;
@@ -9,6 +10,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Scraped till 630762354356170752
+ *
  * @author shuklaalok7
  * @since 16/01/16
  */
@@ -26,10 +29,12 @@ public class TwitterScraper {
         startTime = System.currentTimeMillis();
 
         ExecutorService executorService = Executors.newFixedThreadPool(props.getNumberOfConcurrentThreads());
-//        executorService.submit(new TweetIdExtractor(props));
-
-        for(int i=0; i< props.getNumberOfConcurrentThreads(); i++) {
-            executorService.submit(new ConversationExtractor(props, i, 1027));
+        if (props.getStep() == 1) {
+            executorService.submit(new TweetIdExtractor(props));
+        } else {
+            for (int i = 0; i < props.getNumberOfConcurrentThreads(); i++) {
+                executorService.submit(new ConversationExtractor(props, i, 1027));
+            }
         }
 
         // We may want to spawn more than one conversationExtractors one for each first-level output file

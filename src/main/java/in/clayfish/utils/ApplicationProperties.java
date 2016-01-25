@@ -68,6 +68,11 @@ public class ApplicationProperties {
     @Converters({"TO_MODE"})
     private Mode mode;
 
+    @Getter
+    @Property("target.step")
+    @Converters({"TO_INT"})
+    private int step;
+
     /**
      * Internal structure
      */
