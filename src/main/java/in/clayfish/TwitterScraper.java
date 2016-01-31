@@ -33,7 +33,7 @@ public class TwitterScraper {
             executorService.submit(new TweetIdExtractor(props));
         } else {
             for (int i = 0; i < props.getNumberOfConcurrentThreads(); i++) {
-                executorService.submit(new ConversationExtractor(props, i, 1027));
+                executorService.submit(new ConversationExtractor(props, i, 38784));
             }
         }
 
