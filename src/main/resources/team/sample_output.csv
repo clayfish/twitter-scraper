@@ -1,5 +1,5 @@
-id,conversationId,timestamp,user,message
-688346624117067778,1,1452826260,scotty_raven_x,So bbc iplayer works but itv hub and the rest don't. What's going on with this tv/internet connection @virginmedia
-688346849024040960,1,1452867720,virginmedia,@scotttt_raven_x Thanks for getting in contact. Have you tried rebooting the box and TV? Can you see a related is... https://virginmedia.response.lithium.com/portal/conversation/5932372
-688346972667932672,1,1452884640,scotty_raven_x,@virginmedia tried that twice and still nothing. The only one that works is bbc iplayer. We're paying for a service that we're not getting.
-688347126317842432,1,1452884880,virginmedia,@scotttt_raven_x If you give the technical support team a call on 150 / 0345  454 1111 we can take a closer look. Keep us posted. JY
+id,conversationId,timestamp,user,location,message
+688346624117067778,1,1452826260,scotty_raven_x,London UK,So bbc iplayer works but itv hub and the rest don't. What's going on with this tv/internet connection @virginmedia
+688346849024040960,1,1452867720,virginmedia,,@scotttt_raven_x Thanks for getting in contact. Have you tried rebooting the box and TV? Can you see a related is... https://virginmedia.response.lithium.com/portal/conversation/5932372
+688346972667932672,1,1452884640,scotty_raven_x,London UK,@virginmedia tried that twice and still nothing. The only one that works is bbc iplayer. We're paying for a service that we're not getting.
+688347126317842432,1,1452884880,virginmedia,,@scotttt_raven_x If you give the technical support team a call on 150 / 0345  454 1111 we can take a closer look. Keep us posted. JY
