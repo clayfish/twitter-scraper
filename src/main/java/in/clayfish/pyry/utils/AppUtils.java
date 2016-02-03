@@ -248,6 +248,65 @@ public abstract class AppUtils {
     }
 
     /**
+     *
+     * @param step
+     * @param props
+     * @return
+     * @throws IOException
+     */
+    public static synchronized long getLatestTweetIdFetched(final int step, final ApplicationProperties props) throws IOException {
+        long latestTweetId = Long.MIN_VALUE;
+        final String prefix = getOutputFilePrefix(step);
+        for(File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
+            CSVParser csvParser = new CSVParser(new FileReader(outputFile), CUSTOM);
+            long maxTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).max().orElse(Long.MIN_VALUE);
+
+            if(maxTweetId > latestTweetId) {
+                latestTweetId = maxTweetId;
+            }
+        }
+
+        return latestTweetId;
+    }
+
+    /**
+     *
+     * @param step
+     * @param props
+     * @return
+     * @throws IOException
+     */
+    public static synchronized long getOldestTweetIdFetched(final int step, final ApplicationProperties props) throws IOException {
+        long oldestTweetId = Long.MAX_VALUE;
+        final String prefix = getOutputFilePrefix(step);
+        for(File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
+            CSVParser csvParser = new CSVParser(new FileReader(outputFile), CUSTOM);
+            long minTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).min().orElse(Long.MAX_VALUE);
+
+            if(minTweetId < oldestTweetId) {
+                oldestTweetId = minTweetId;
+            }
+        }
+
+        return oldestTweetId;
+    }
+
+    private static long getTweetId(final CSVRecord record, final int step) {
+        switch (step) {
+            case 1:
+                return Long.parseLong(record.get(0).trim());
+
+            case 2:
+                // Left to implement
+                break;
+
+            default:
+                throw new IllegalArgumentException("Step should be 1 or 2, found "+ step);
+        }
+        return 0;
+    }
+
+    /**
      * @param step
      * @return
      */

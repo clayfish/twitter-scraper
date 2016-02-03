@@ -2,6 +2,7 @@ package in.clayfish.pyry;
 
 import java.io.IOException;
 
+import in.clayfish.pyry.utils.AppUtils;
 import in.clayfish.pyry.utils.ApplicationProperties;
 
 /**
@@ -30,6 +31,8 @@ public class Application {
                 throw new IllegalStateException("Cannot create output folder: " + props.getOutputFolder().getPath());
             }
         }
+
+        System.out.println(String.format("First: %d\tLast: %d", AppUtils.getLatestTweetIdFetched(1, props), AppUtils.getOldestTweetIdFetched(1, props)));
 
         new TwitterScraper(props).scrape();
     }
