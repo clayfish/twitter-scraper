@@ -1,13 +1,15 @@
-package in.clayfish.models;
-
-import in.clayfish.utils.Converter;
-import in.clayfish.utils.IConstants;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+package in.clayfish.pyry.models;
 
 import java.util.Date;
 import java.util.Objects;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import org.apache.commons.lang3.StringUtils;
+
+import in.clayfish.pyry.utils.Converter;
+import in.clayfish.pyry.utils.IConstants;
 
 /**
  * The tweet

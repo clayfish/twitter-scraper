@@ -1,7 +1,4 @@
-package in.clayfish.utils;
-
-import in.clayfish.enums.Mode;
-import in.clayfish.models.Tweet;
+package in.clayfish.pyry.utils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -9,6 +6,9 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import in.clayfish.pyry.enums.Mode;
+import in.clayfish.pyry.models.Tweet;
 
 /**
  * @author shuklaalok7

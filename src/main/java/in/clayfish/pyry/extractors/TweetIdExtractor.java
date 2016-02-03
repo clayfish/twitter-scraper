@@ -1,6 +1,10 @@
-package in.clayfish.extractors;
+package in.clayfish.pyry.extractors;
 
-import in.clayfish.utils.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.csv.CSVRecord;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -9,10 +13,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import in.clayfish.pyry.utils.*;
 
 
 /**

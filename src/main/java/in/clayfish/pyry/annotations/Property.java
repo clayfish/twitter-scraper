@@ -1,4 +1,4 @@
-package in.clayfish.annotations;
+package in.clayfish.pyry.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Converters {
-    String[] value();
+public @interface Property {
+    String value();
 }

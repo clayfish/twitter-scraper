@@ -1,9 +1,9 @@
-package in.clayfish.models;
+package in.clayfish.pyry.models;
+
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
 
 /**
  * @author shuklaalok7

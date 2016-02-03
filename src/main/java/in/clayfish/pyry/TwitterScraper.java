@@ -1,13 +1,13 @@
-package in.clayfish;
-
-import in.clayfish.extractors.ConversationExtractor;
-import in.clayfish.extractors.TweetIdExtractor;
-import in.clayfish.utils.ApplicationProperties;
+package in.clayfish.pyry;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import in.clayfish.pyry.extractors.ConversationExtractor;
+import in.clayfish.pyry.extractors.TweetIdExtractor;
+import in.clayfish.pyry.utils.ApplicationProperties;
 
 /**
  * Scraped till 630762354356170752

@@ -1,6 +1,6 @@
-package in.clayfish.extractors;
+package in.clayfish.pyry.extractors;
 
-import in.clayfish.utils.ApplicationProperties;
+import in.clayfish.pyry.utils.ApplicationProperties;
 
 /**
  * @author shuklaalok7

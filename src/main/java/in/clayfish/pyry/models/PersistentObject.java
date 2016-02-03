@@ -1,9 +1,9 @@
-package in.clayfish.models;
+package in.clayfish.pyry.models;
+
+import java.io.Serializable;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import java.io.Serializable;
 
 /**
  * @author shuklaalok7

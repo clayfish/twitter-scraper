@@ -1,14 +1,16 @@
-package in.clayfish.utils;
-
-import in.clayfish.enums.Mode;
-import lombok.Getter;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+package in.clayfish.pyry.utils;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.Getter;
+
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import in.clayfish.pyry.enums.Mode;
 
 /**
  * This class must be thread-safe
