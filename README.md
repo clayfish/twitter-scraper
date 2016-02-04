@@ -6,11 +6,20 @@ A scraper to retrieve the conversation in tweets for a particular twitter user.
 “Twitter Scraper” (or simply “scraper”) is available under [MIT License](https://github.com/clayfish/twitter-scraper/blob/master/LICENSE). It consists of two steps- Step 1 and Step 2. 
 Both these steps are to run one after the other in order. The behaviour is controlled with a properties file, named `application.properties`.
 
+### application.properties
+This is the configuration file and specifies many important properties. For all available options, please see [this file](https://github.com/clayfish/twitter-scraper/src/main/resources/team/properties.md).
+
+Property | Type | Details
+-------|---------|-----------
+`target.username` | String, required | This specifies the twitter-handle to scrape conversations for.
+`target.step` | int, required | Possible values are `1` or `2`. This tells the scraper the step to run.
+`concurrent-threads` | int, required | Should be greater than 0. Number of threads to run to fetch conversations. This is in-effect when step 2 is running.
+
 ### Step 1
+This step fetches tweetIds from the specified. More will be updated later.
 
 ### Step 2
-
-### application.properties
+This step fetches the conversations for the tweetIds fetched in the first step. More will be updated later.
 
 ## Prerequisites
 Following software are needed to run the built JAR.
@@ -34,6 +43,7 @@ sudo apt-get install oracle-java8-installer
 sudo nano /etc/environment
 ```
 And then append this line at the bottom of the opened file and save it.
+
 `JAVA_HOME=”/usr/lib/jvm/java-8-oracle”`
 
 And then run following command.
@@ -55,10 +65,14 @@ java -version
 To get the scraper on EC2 instance (or any other Ubuntu machine), follow the steps below. These steps are needed to run only once.
 
 1. Decide a directory to put the “twitter-scraper” repository. Let’s call this directory `base_directory`. Issue following command to change directory to this base directory. Please replace “base_directory” term with the actual path of this chosen directory.
-`cd base_directory`
+``` {bash}
+cd base_directory
+```
 
 2. Following steps assume that the commands are being run from the `base_directory`. Issue following command.
-`git clone https://github.com/clayfish/twitter-scraper`
+``` {bash}
+git clone https://github.com/clayfish/twitter-scraper
+```
 
 3. Now you have clone (source-code) of the scraper on you machine. Notice git command does not need any username/password.
 
@@ -76,7 +90,7 @@ cd base_directory/twitter-scraper
 git pull
 ```
 ### Compile the code
-Before compiling the code, please check if `application.properties` is configured as per the needs. Please refer to this section for more information about the configuration. To compile the code run the following commands.
+Before compiling the code, please check if `application.properties` is configured as per the needs. Please refer to [this section](https://github.com/clayfish/twitter-scraper#applicationproperties) for more information about the configuration. To compile the code run the following commands.
 ``` {bash}
 cd base_directory/twitter-scraper
 mvn package
