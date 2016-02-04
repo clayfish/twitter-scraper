@@ -1,9 +1,9 @@
 package in.clayfish.pyry;
 
-import java.io.IOException;
-
 import in.clayfish.pyry.utils.AppUtils;
 import in.clayfish.pyry.utils.ApplicationProperties;
+
+import java.io.IOException;
 
 /**
  * @author shuklaalok7
@@ -32,7 +32,8 @@ public class Application {
             }
         }
 
-        System.out.println(String.format("First: %d\tLast: %d", AppUtils.getLatestTweetIdFetched(1, props), AppUtils.getOldestTweetIdFetched(1, props)));
+        AppUtils.initialize(props);
+        System.out.println(String.format("First: %d\tLast: %d", AppUtils.getLatestTweetIdFetched(1), AppUtils.getOldestTweetIdFetched(1)));
 
         new TwitterScraper(props).scrape();
     }

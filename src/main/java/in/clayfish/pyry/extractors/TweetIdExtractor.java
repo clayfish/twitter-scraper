@@ -1,10 +1,6 @@
 package in.clayfish.pyry.extractors;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import in.clayfish.pyry.utils.*;
 import org.apache.commons.csv.CSVRecord;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -13,7 +9,10 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import in.clayfish.pyry.utils.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -24,7 +23,6 @@ import in.clayfish.pyry.utils.*;
  */
 public class TweetIdExtractor extends Extractor {
 
-    private final JsoupWrapper jsoupWrapper;
     private final String urlTemplate;
     private long startingTweetId;
 
@@ -62,7 +60,7 @@ public class TweetIdExtractor extends Extractor {
 
 
         final String label = String.format("Thread %d:", 0);
-        File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);
+        File currentOutputFile = AppUtils.getCurrentOutputFile(1);
         long currentTweetId = startingTweetId;
 
         System.out.println(String.format("%s Started thread: %1$s", label));
@@ -80,7 +78,7 @@ public class TweetIdExtractor extends Extractor {
             if (currentOutputFile.length() > IConstants.MB_24) {
                 System.out.println(currentOutputFile.getName() + " is overflowing, writing to new file now.");
                 try {
-                    currentOutputFile = AppUtils.createNewOutputFile(1, props);
+                    currentOutputFile = AppUtils.createNewOutputFile(1);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Thread.currentThread().interrupt();
@@ -137,7 +135,7 @@ public class TweetIdExtractor extends Extractor {
     private synchronized long getLastFetchedTweetId() {
         long lastTweetId = startingTweetId;
 
-        File currentOutputFile = AppUtils.getCurrentOutputFile(1, props);
+        File currentOutputFile = AppUtils.getCurrentOutputFile(1);
 
         if (currentOutputFile != null) {
             try {

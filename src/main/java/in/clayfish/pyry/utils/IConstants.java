@@ -11,12 +11,11 @@ public interface IConstants {
     String BLANK = "";
     String UNCHECKED = "unchecked";
     String MINUS = "-";
+    String COMMA = ",";
+    String SPACE = " ";
 
-    @Deprecated
-    String SEPARATOR = "Tgdyu63t287iegdsafewfdswdd";
+    SimpleDateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+
     long MB_24 = 24 * 1024 * 1024; // in bytes
     long MB_12 = 12 * 1024 * 1024; // in bytes
-    String COMMA = ";";
-    SimpleDateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-    String SPACE = " ";
 }

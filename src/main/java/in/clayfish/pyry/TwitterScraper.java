@@ -1,13 +1,15 @@
 package in.clayfish.pyry;
 
+import in.clayfish.pyry.extractors.ConversationExtractor;
+import in.clayfish.pyry.extractors.TweetIdExtractor;
+import in.clayfish.pyry.utils.AppUtils;
+import in.clayfish.pyry.utils.ApplicationProperties;
+import in.clayfish.pyry.utils.Converter;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import in.clayfish.pyry.extractors.ConversationExtractor;
-import in.clayfish.pyry.extractors.TweetIdExtractor;
-import in.clayfish.pyry.utils.ApplicationProperties;
 
 /**
  * Scraped till 630762354356170752
@@ -32,8 +34,10 @@ public class TwitterScraper {
         if (props.getStep() == 1) {
             executorService.submit(new TweetIdExtractor(props));
         } else {
+            final long totalRecords = AppUtils.getLineCount(Converter.TO_FILE.apply(String.format("%s/first-level-1.csv", props.getOutputFolder())));
+            final long recordsToProcess = totalRecords/props.getNumberOfConcurrentThreads();
             for (int i = 0; i < props.getNumberOfConcurrentThreads(); i++) {
-                executorService.submit(new ConversationExtractor(props, i, 38784));
+                executorService.submit(new ConversationExtractor(props, i, recordsToProcess));
             }
         }
 

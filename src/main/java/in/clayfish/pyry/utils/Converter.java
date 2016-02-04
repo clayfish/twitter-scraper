@@ -1,14 +1,14 @@
 package in.clayfish.pyry.utils;
 
+import in.clayfish.pyry.enums.Mode;
+import in.clayfish.pyry.models.Tweet;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import in.clayfish.pyry.enums.Mode;
-import in.clayfish.pyry.models.Tweet;
 
 /**
  * @author shuklaalok7
@@ -35,7 +35,7 @@ public interface Converter<T, U> extends Function<T, U> {
 
     Converter<String, File> TO_FILE = File::new;
     Converter<String, String> IN_OUTPUT_FOLDER = (src) -> String.format("%s/%s", System.getProperty("user.dir"), src);
-    Converter<Date, String> DATE_TO_STRING = IConstants.SIMPLE_DATE_FORMATTER::format;
+    Converter<Date, String> DATE_TO_STRING = (date) -> date!=null?IConstants.SIMPLE_DATE_FORMATTER.format(date):"";
 
     Converter<String, Date> TO_DATE = (src) -> {
         try {

@@ -1,19 +1,21 @@
 package in.clayfish.pyry.utils;
 
-import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
+import in.clayfish.pyry.models.Tweet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
+import java.io.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 /**
- * Static utility-class for helper functions
+ * Static utility-class for helper functions. All the functions are thread-safe.
  *
  * @author shuklaalok7
  * @since 16/01/16
@@ -21,6 +23,30 @@ import org.apache.commons.csv.CSVRecord;
 public abstract class AppUtils {
 
     private static final CSVFormat CUSTOM = CSVFormat.DEFAULT.withQuote(null);
+    private static ApplicationProperties props;
+    private static AtomicLong counter;
+    private static boolean initialized = false;
+
+    public static synchronized boolean initialize(ApplicationProperties props) throws IOException {
+        Objects.requireNonNull(props);
+        initialized = true;
+
+        AppUtils.props = props;
+        counter = new AtomicLong(getLastConversationId());
+
+        return true;
+    }
+
+    /**
+     * @return
+     */
+    public static synchronized long generateConversationId() {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+
+        return counter.incrementAndGet();
+    }
 
     /**
      * @param file
@@ -71,9 +97,7 @@ public abstract class AppUtils {
      */
     public static synchronized CSVRecord readLastRecord(final File file) throws IOException {
         if (file.exists()) {
-            CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
-
-            long count = StreamSupport.stream(csvParser.spliterator(), false).count();
+            long count = getLineCount(file);
 
             if (count > 0) {
                 return readNthRecord(file, count - 1);
@@ -92,6 +116,14 @@ public abstract class AppUtils {
         writeToCsv(file, objects, true);
     }
 
+    /**
+     *
+     * @param file
+     * @param object
+     * @param append
+     * @param <T>
+     * @throws IOException
+     */
     public static synchronized <T> void writeToCsv(final File file, final T object, final boolean append) throws IOException {
         if (!file.exists()) {
             boolean created = file.createNewFile();
@@ -137,13 +169,14 @@ public abstract class AppUtils {
 
     /**
      * @param step
-     * @param props
      * @param threadNumber
      * @return
      * @throws IOException
      */
-    public static synchronized File createNewOutputFile(final int step, final ApplicationProperties props, final int threadNumber) throws IOException {
-        Objects.requireNonNull(props);
+    public static synchronized File createNewOutputFile(final int step, final int threadNumber) throws IOException {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
 
         if (threadNumber > props.getNumberOfConcurrentThreads()) {
             throw new IllegalStateException(String.format("Thread %d: Threads should be less than maximum number of threads(%d)", threadNumber,
@@ -151,28 +184,30 @@ public abstract class AppUtils {
         }
 
         String prefix = getOutputFilePrefix(step);
-        int currentIndex = getCurrentOutputFileIndex(prefix, props);
-        File newOutputFile = new File(String.format("%s/%s%d-%d.csv", props.getOutputFolder().getPath(), prefix, threadNumber, currentIndex + 1));
+        int currentIndex = getCurrentOutputFileIndex(prefix);
+        File newOutputFile = new File(
+                String.format("%s/%s%d-%d.csv", props.getOutputFolder().getPath(), prefix, threadNumber, currentIndex + 1));
         boolean created = newOutputFile.createNewFile();
 
         if (!created) {
-            throw new IllegalStateException(String.format("Thread %d: Cannot create new output file for %s", threadNumber, getOutputFilePrefix(step)));
+            throw new IllegalStateException(String.format("Thread %d: Cannot create new output file for %s", threadNumber,
+                    getOutputFilePrefix(step)));
         }
         return newOutputFile;
     }
 
     /**
-     * Thread-safe
-     *
      * @param step
-     * @param props
      * @return
+     * @throws IOException
      */
-    public static synchronized File createNewOutputFile(final int step, final ApplicationProperties props) throws IOException {
-        Objects.requireNonNull(props);
+    public static synchronized File createNewOutputFile(final int step) throws IOException {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
 
         String prefix = getOutputFilePrefix(step);
-        int currentIndex = getCurrentOutputFileIndex(prefix, props);
+        int currentIndex = getCurrentOutputFileIndex(prefix);
         File newOutputFile = new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex + 1));
         boolean created = newOutputFile.createNewFile();
 
@@ -184,12 +219,13 @@ public abstract class AppUtils {
 
     /**
      * @param step
-     * @param props
      * @param threadNumber
      * @return
      */
-    public static synchronized File getCurrentOutputFile(final int step, final ApplicationProperties props, final int threadNumber) {
-        Objects.requireNonNull(props);
+    public static synchronized File getCurrentOutputFile(final int step, final int threadNumber) {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
 
         if (threadNumber > props.getNumberOfConcurrentThreads()) {
             throw new IllegalStateException(String.format("Thread %d: Threads should be less than maximum number of threads(%d)", threadNumber,
@@ -197,7 +233,7 @@ public abstract class AppUtils {
         }
 
         String prefix = getOutputFilePrefix(step);
-        int currentIndex = getCurrentOutputFileIndex(prefix, props);
+        int currentIndex = getCurrentOutputFileIndex(prefix);
 
         if (currentIndex == 0) {
             currentIndex++;
@@ -208,14 +244,15 @@ public abstract class AppUtils {
 
     /**
      * @param step
-     * @param props
      * @return
      */
-    public static synchronized File getCurrentOutputFile(final int step, final ApplicationProperties props) {
-        Objects.requireNonNull(props);
+    public static synchronized File getCurrentOutputFile(final int step) {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
 
         String prefix = getOutputFilePrefix(step);
-        int currentIndex = getCurrentOutputFileIndex(prefix, props);
+        int currentIndex = getCurrentOutputFileIndex(prefix);
 
         if (currentIndex == 0) {
             currentIndex++;
@@ -224,16 +261,26 @@ public abstract class AppUtils {
         return new File(String.format("%s/%s%d.csv", props.getOutputFolder().getPath(), prefix, currentIndex));
     }
 
-    public static synchronized int getCurrentOutputFileIndex(final int step, final ApplicationProperties props) {
-        return getCurrentOutputFileIndex(getOutputFilePrefix(step), props);
+    /**
+     * @param step
+     * @return
+     */
+    public static synchronized int getCurrentOutputFileIndex(final int step) {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+        return getCurrentOutputFileIndex(getOutputFilePrefix(step));
     }
 
     /**
      * @param prefix
-     * @param props
      * @return
      */
-    public static synchronized int getCurrentOutputFileIndex(final String prefix, final ApplicationProperties props) {
+    public static synchronized int getCurrentOutputFileIndex(final String prefix) {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+
         int maxIndex = 0;
         for (File firstLevelOutputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
             String[] nameParts = firstLevelOutputFile.getName().split(IConstants.MINUS);
@@ -248,20 +295,23 @@ public abstract class AppUtils {
     }
 
     /**
-     *
      * @param step
-     * @param props
      * @return
      * @throws IOException
      */
-    public static synchronized long getLatestTweetIdFetched(final int step, final ApplicationProperties props) throws IOException {
+    public static synchronized long getLatestTweetIdFetched(final int step) throws IOException {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+
         long latestTweetId = Long.MIN_VALUE;
         final String prefix = getOutputFilePrefix(step);
-        for(File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
+        for (File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
             CSVParser csvParser = new CSVParser(new FileReader(outputFile), CUSTOM);
-            long maxTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).max().orElse(Long.MIN_VALUE);
+            long maxTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).max()
+                    .orElse(Long.MIN_VALUE);
 
-            if(maxTweetId > latestTweetId) {
+            if (maxTweetId > latestTweetId) {
                 latestTweetId = maxTweetId;
             }
         }
@@ -270,20 +320,23 @@ public abstract class AppUtils {
     }
 
     /**
-     *
      * @param step
-     * @param props
      * @return
      * @throws IOException
      */
-    public static synchronized long getOldestTweetIdFetched(final int step, final ApplicationProperties props) throws IOException {
+    public static synchronized long getOldestTweetIdFetched(final int step) throws IOException {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+
         long oldestTweetId = Long.MAX_VALUE;
         final String prefix = getOutputFilePrefix(step);
-        for(File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
+        for (File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
             CSVParser csvParser = new CSVParser(new FileReader(outputFile), CUSTOM);
-            long minTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).min().orElse(Long.MAX_VALUE);
+            long minTweetId = StreamSupport.stream(csvParser.spliterator(), false).mapToLong(csvRecord -> getTweetId(csvRecord, step)).min()
+                    .orElse(Long.MAX_VALUE);
 
-            if(minTweetId < oldestTweetId) {
+            if (minTweetId < oldestTweetId) {
                 oldestTweetId = minTweetId;
             }
         }
@@ -291,6 +344,37 @@ public abstract class AppUtils {
         return oldestTweetId;
     }
 
+    /**
+     * @return
+     * @throws IOException
+     */
+    public static synchronized long getLastConversationId() throws IOException {
+        if (!initialized) {
+            throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
+        }
+
+        long lastConversationId = 0;
+        final String prefix = getOutputFilePrefix(2);
+        for (File outputFile : props.getOutputFolder().listFiles((dir, name) -> name.startsWith(prefix) && name.endsWith(".csv"))) {
+            CSVParser csvParser = new CSVParser(new FileReader(outputFile), CUSTOM);
+            long maxConversationId = StreamSupport.stream(csvParser.spliterator(), false)
+                    .map(csvRecord -> StreamSupport.stream(csvRecord.spliterator(), false).reduce((s, s2) -> s + "," + s2).orElse(IConstants.BLANK))
+                    .filter(record -> !record.isEmpty()).map(recordString -> new Tweet().fromRecord(recordString)).mapToLong(Tweet::getConversationId).max()
+                    .orElse(0);
+
+            if (lastConversationId < maxConversationId) {
+                lastConversationId = maxConversationId;
+            }
+        }
+
+        return lastConversationId;
+    }
+
+    /**
+     * @param record
+     * @param step
+     * @return
+     */
     private static long getTweetId(final CSVRecord record, final int step) {
         switch (step) {
             case 1:
@@ -301,14 +385,14 @@ public abstract class AppUtils {
                 break;
 
             default:
-                throw new IllegalArgumentException("Step should be 1 or 2, found "+ step);
+                throw new IllegalArgumentException("Step should be 1 or 2, found " + step);
         }
         return 0;
     }
 
     /**
-     * @param step
-     * @return
+     * @param step The step for which the prefix is required
+     * @return The file-prefix to use
      */
     private synchronized static String getOutputFilePrefix(final int step) {
         switch (step) {
@@ -323,4 +407,18 @@ public abstract class AppUtils {
         }
     }
 
+    /**
+     *
+     * @param file
+     * @return Number of lines in the given CSV file
+     * @throws IOException
+     */
+    public static synchronized long getLineCount(File file) throws IOException {
+        Objects.requireNonNull(file);
+        if(file.exists()) {
+            CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
+            return StreamSupport.stream(csvParser.spliterator(), false).count();
+        }
+        return 0;
+    }
 }
