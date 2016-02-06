@@ -7,7 +7,7 @@ A scraper to retrieve the conversation in tweets for a particular twitter user.
 Both these steps are to run one after the other in order. The behaviour is controlled with a properties file, named `application.properties`.
 
 ### application.properties
-This is the configuration file and specifies many important properties. For all available options, please see [this file](https://github.com/clayfish/twitter-scraper/src/main/resources/team/properties.md).
+This is the configuration file and specifies many important properties. For all available options, please see [this file](https://github.com/clayfish/twitter-scraper/blob/master/src/main/resources/team/properties.md).
 
 Property | Type | Details
 -------|---------|-----------
