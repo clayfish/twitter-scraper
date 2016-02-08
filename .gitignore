@@ -86,4 +86,5 @@ Temporary Items
 
 # output/
 
-# Starting it on another laptop so that I can continue working on this one while it fetches tweet IDs
+# Following file can be different for different machines
+application.properties

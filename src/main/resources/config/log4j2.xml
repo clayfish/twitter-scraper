@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="TRACE">
-    <!--<Properties>-->
-        <!--<Property name="log-path">C:/logs/</Property>-->
-    <!--</Properties>-->
     <Appenders>
-        <RollingFile name="RollingFile" fileName="twitter-scraper.log"
+        <RollingFile name="RollingFile" fileName="twitter-scraper.log" bufferedIO="true" immediateFlush="true"
                      filePattern="twitter-scraper-%d{yyyy-MM-dd}-%i.log">
             <PatternLayout>
-                <pattern>%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n</pattern>
+                <pattern>%d{dd-MM-yyyy HH:mm:ss} %-5p %c{1}#%L: %m%n</pattern>
             </PatternLayout>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 Mb"/>
@@ -16,10 +13,10 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="root" level="debug" additivity="false">
+        <Logger name="root" level="trace" additivity="false">
             <appender-ref ref="RollingFile" level="debug"/>
         </Logger>
-        <Root level="debug" additivity="false">
+        <Root level="trace" additivity="false">
             <AppenderRef ref="RollingFile"/>
         </Root>
     </Loggers>
