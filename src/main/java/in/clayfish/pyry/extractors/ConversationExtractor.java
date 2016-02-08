@@ -81,7 +81,7 @@ public class ConversationExtractor extends Extractor {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    logger.warn(MessageFormat.format("Thread {1}: {2} is interrupted", threadNumber, this.getClass().getSimpleName()));
+                    logger.warn(MessageFormat.format("Thread {0}: {1} is interrupted", threadNumber, this.getClass().getSimpleName()));
                     break;
                 }
 
@@ -109,7 +109,7 @@ public class ConversationExtractor extends Extractor {
 
                 String tweetId = csvRecord.get(0);
 
-                logger.debug(MessageFormat.format("Thread {1}: Line {2} - {3}", threadNumber, currentInputLineIndex, tweetId));
+                logger.debug(MessageFormat.format("Thread {0}: Line {1} - {2}", threadNumber, currentInputLineIndex, tweetId));
                 Connection connection = jsoupWrapper.connect(String.format(urlTemplate, tweetId));
                 final Document document;
                 try {
