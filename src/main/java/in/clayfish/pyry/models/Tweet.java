@@ -1,13 +1,15 @@
 package in.clayfish.pyry.models;
 
-import in.clayfish.pyry.utils.Converter;
-import in.clayfish.pyry.utils.IConstants;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.util.Objects;
+
+import static in.clayfish.pyry.utils.Converter.*;
+import static in.clayfish.pyry.utils.IConstants.BLANK;
+import static in.clayfish.pyry.utils.IConstants.COMMA;
 
 /**
  * The tweet
@@ -33,15 +35,15 @@ public class Tweet extends PersistentObject<Tweet> {
             throw new IllegalArgumentException("record cannot be blank");
         }
 
-        String[] tweetMetadata = record.split(IConstants.COMMA);
+        String[] tweetMetadata = record.split(COMMA);
 
         if (tweetMetadata.length < 5 || tweetMetadata.length > 7) {
             throw new IllegalArgumentException("record is malformed and cannot be converted to tweet object");
         }
 
-        this.id = Converter.TO_LONG.apply(tweetMetadata[0]);
-        this.conversationId = Converter.TO_LONG.apply(tweetMetadata[1]);
-        this.timestamp = Converter.TO_DATE.apply(tweetMetadata[2]);
+        this.id = TO_LONG.apply(tweetMetadata[0]);
+        this.conversationId = TO_LONG.apply(tweetMetadata[1]);
+        this.timestamp = TO_DATE.apply(tweetMetadata[2]);
         this.username = tweetMetadata[3];
         this.user = tweetMetadata[4];
 
@@ -64,8 +66,8 @@ public class Tweet extends PersistentObject<Tweet> {
             e.printStackTrace();
             throw new RuntimeException("Cannot serialize tweet: " + id);
         }
-        return String.format("%d,%d,%s,%s,%s,%s,%s", id, conversationId, Converter.DATE_TO_STRING.apply(timestamp), username, user, location,
-                message.replaceAll(IConstants.COMMA, IConstants.BLANK));
+        return String.format("%d,%d,%s,%s,%s,%s,%s", id, conversationId, DATE_TO_STRING.apply(timestamp), username, user, location,
+                message.replaceAll(COMMA, BLANK));
     }
 
 }

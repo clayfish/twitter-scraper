@@ -1,16 +1,16 @@
 package in.clayfish.pyry.utils;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
+import in.clayfish.pyry.enums.Mode;
 import lombok.Getter;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import in.clayfish.pyry.enums.Mode;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class must be thread-safe
@@ -19,6 +19,7 @@ import in.clayfish.pyry.enums.Mode;
  * @since 8/4/15 00:55
  */
 public class JsoupWrapper {
+    private final Logger logger = LogManager.getLogger(JsoupWrapper.class);
     private final int timeoutInMilliseconds;
     private final String userAgent;
     private final ApplicationProperties props;
@@ -65,7 +66,7 @@ public class JsoupWrapper {
         }
 
         try {
-            System.out.println("Calling " + connection.request().url());
+            logger.debug("Calling " + connection.request().url());
             if (props.getMode() == Mode.TEST) {
                 return null;
             }

@@ -4,6 +4,8 @@ import in.clayfish.pyry.models.Conversation;
 import in.clayfish.pyry.models.Tweet;
 import in.clayfish.pyry.utils.*;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,6 +13,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +23,8 @@ import java.util.List;
  * @since 18/01/16
  */
 public class ConversationExtractor extends Extractor {
+
+    private final static Logger logger = LogManager.getLogger(ConversationExtractor.class);
 
     private final File counterFile;
     private final String urlTemplate;
@@ -51,14 +56,14 @@ public class ConversationExtractor extends Extractor {
 
     @Override
     public void run() {
-        int currentLineIndex, currentFileIndex;
+        int currentInputLineIndex, currentInputFileIndex;
         final int lastLineIndex;
         File currentInputFile, currentOutputFile;
 
         try {
             CSVRecord stateRecord = AppUtils.readFirstRecord(counterFile);
-            currentFileIndex = Converter.TO_INT.apply(stateRecord.get(0));
-            currentLineIndex = Converter.TO_INT.apply(stateRecord.get(1));
+            currentInputFileIndex = Converter.TO_INT.apply(stateRecord.get(0));
+            currentInputLineIndex = Converter.TO_INT.apply(stateRecord.get(1));
             lastLineIndex = Converter.TO_INT.apply(stateRecord.get(2));
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,17 +71,17 @@ public class ConversationExtractor extends Extractor {
         }
 
         try {
-            currentInputFile = new File(String.format("%s/first-level-%d.csv", props.getOutputFolder().getPath(), currentFileIndex));
+            currentInputFile = new File(String.format("%s/first-level-%d.csv", props.getOutputFolder().getPath(), currentInputFileIndex));
             currentOutputFile = AppUtils.getCurrentOutputFile(2, threadNumber);
 
-            while (currentInputFile.exists() && currentLineIndex < lastLineIndex) {
+            while (currentInputFile.exists() && currentInputLineIndex < lastLineIndex) {
                 if (Thread.interrupted()) {
                     try {
-                        AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentFileIndex, currentLineIndex, lastLineIndex), false);
+                        AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentInputFileIndex, currentInputLineIndex, lastLineIndex), false);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    System.out.println(String.format("Thread %d: %s is interrupted", threadNumber, this.getClass().getSimpleName()));
+                    logger.warn(MessageFormat.format("Thread {1}: {2} is interrupted", threadNumber, this.getClass().getSimpleName()));
                     break;
                 }
 
@@ -92,31 +97,31 @@ public class ConversationExtractor extends Extractor {
 
                 CSVRecord csvRecord = null;
                 try {
-                    csvRecord = AppUtils.readNthRecord(currentInputFile, currentLineIndex);
+                    csvRecord = AppUtils.readNthRecord(currentInputFile, currentInputLineIndex);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 if (csvRecord == null) {
-                    currentFileIndex++;
-                    currentInputFile = new File(String.format("%s/first-level-%d.csv", props.getOutputFolder().getPath(), currentFileIndex));
+                    currentInputFileIndex++;
+                    currentInputFile = new File(String.format("%s/first-level-%d.csv", props.getOutputFolder().getPath(), currentInputFileIndex));
                     continue;
                 }
 
                 String tweetId = csvRecord.get(0);
 
-                System.out.println(String.format("Thread %d: Line %d - %s", threadNumber, currentLineIndex, tweetId));
+                logger.debug(MessageFormat.format("Thread {1}: Line {2} - {3}", threadNumber, currentInputLineIndex, tweetId));
                 Connection connection = jsoupWrapper.connect(String.format(urlTemplate, tweetId));
                 final Document document;
                 try {
                     document = jsoupWrapper.get(connection);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    currentLineIndex++;
+                    currentInputLineIndex++;
                     continue;
                 }
 
                 if (document == null) {
-                    currentLineIndex++;
+                    currentInputLineIndex++;
                     continue;
                 }
 
@@ -144,13 +149,13 @@ public class ConversationExtractor extends Extractor {
 
                 try {
                     AppUtils.writeToCsv(currentOutputFile, conversation1.toString(), true);
-                    currentLineIndex++;
+                    currentInputLineIndex++;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 if (currentOutputFile.length() > IConstants.MB_12) {
-                    System.out.println("Thread " + threadNumber + ": Reached 24 MB limit. Creating new output file");
+                    logger.info("Thread " + threadNumber + ": Reached 24 MB limit. Creating new output file");
                     try {
                         currentOutputFile = AppUtils.createNewOutputFile(2, threadNumber);
 //                        currentFileIndex = AppUtils.getCurrentOutputFileIndex(2, props);
@@ -162,13 +167,13 @@ public class ConversationExtractor extends Extractor {
             }
 
             try {
-                AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentFileIndex, currentLineIndex, lastLineIndex), false);
+                AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentInputFileIndex, currentInputLineIndex, lastLineIndex), false);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } catch (Exception e) {
             try {
-                AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentFileIndex, currentLineIndex, lastLineIndex), false);
+                AppUtils.writeToCsv(counterFile, String.format("%d,%d,%d", currentInputFileIndex, currentInputLineIndex, lastLineIndex), false);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

@@ -1,14 +1,14 @@
 package in.clayfish.pyry.utils;
 
+import in.clayfish.pyry.annotations.Converters;
+import in.clayfish.pyry.annotations.Property;
+import in.clayfish.pyry.enums.Mode;
+import lombok.Getter;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
-
-import lombok.Getter;
-import in.clayfish.pyry.annotations.Converters;
-import in.clayfish.pyry.annotations.Property;
-import in.clayfish.pyry.enums.Mode;
 
 /**
  * @author shuklaalok7
@@ -131,4 +131,7 @@ public class ApplicationProperties {
         }
     }
 
+    public ApplicationProperties() throws IOException {
+        this(System.getProperty("twitter-scraper.configurationFile"));
+    }
 }

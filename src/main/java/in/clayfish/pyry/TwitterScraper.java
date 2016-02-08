@@ -5,6 +5,8 @@ import in.clayfish.pyry.extractors.TweetIdExtractor;
 import in.clayfish.pyry.utils.AppUtils;
 import in.clayfish.pyry.utils.ApplicationProperties;
 import in.clayfish.pyry.utils.Converter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -12,12 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Scraped till 630762354356170752
  *
  * @author shuklaalok7
  * @since 16/01/16
  */
 public class TwitterScraper {
+    private static final Logger logger = LogManager.getLogger(TwitterScraper.class);
 
     private ApplicationProperties props;
 
@@ -47,25 +49,25 @@ public class TwitterScraper {
         // Adding a shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!executorService.isTerminated()) {
-                System.out.println("Performing some shutdown cleanup...");
+                logger.debug("Performing some shutdown cleanup...");
                 executorService.shutdownNow();
                 while (true) {
                     try {
-                        System.out.println("Waiting for the service to terminate...");
+                        logger.debug("Waiting for the service to terminate...");
                         if (executorService.awaitTermination(5, TimeUnit.SECONDS)) {
                             break;
                         }
                     } catch (InterruptedException ignored) {
                     }
                 }
-                System.out.println("Done cleaning");
+                logger.debug("Done cleaning");
             }
-            System.out.println(String.format("Process took %d seconds", (System.currentTimeMillis() - startTime) / 1000));
+            logger.info(String.format("Process took %d seconds", (System.currentTimeMillis() - startTime) / 1000));
         }));
 
         // Shutting down the executorService. This shuts down when it has finished running all the submitted jobs and do not accept any more jobs.
         executorService.shutdown();
-        System.out.println("Waiting for debugger");
+        logger.trace("Waiting for debugger");
     }
 
 }

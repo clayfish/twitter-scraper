@@ -5,6 +5,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.util.Collections;
@@ -21,6 +23,7 @@ import java.util.stream.StreamSupport;
  * @since 16/01/16
  */
 public abstract class AppUtils {
+    private static final Logger logger = LogManager.getLogger(AppUtils.class);
 
     private static final CSVFormat CUSTOM = CSVFormat.DEFAULT.withQuote(null);
     private static ApplicationProperties props;
@@ -134,7 +137,7 @@ public abstract class AppUtils {
         }
         CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(file, append), CUSTOM);
         if (object instanceof String) {
-            System.out.println("Printing " + object);
+            logger.debug("Printing " + object);
             csvPrinter.print(object);
             csvPrinter.println();
         } else {

@@ -1,7 +1,12 @@
 package in.clayfish.pyry.extractors;
 
-import in.clayfish.pyry.utils.*;
+import in.clayfish.pyry.utils.AppUtils;
+import in.clayfish.pyry.utils.ApplicationProperties;
+import in.clayfish.pyry.utils.IConstants;
+import in.clayfish.pyry.utils.JsoupWrapper;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static in.clayfish.pyry.utils.Converter.TO_LONG;
+
 
 /**
  * First-level extractor
@@ -23,6 +30,7 @@ import java.util.stream.Collectors;
  */
 public class TweetIdExtractor extends Extractor {
 
+    private static final Logger logger = LogManager.getLogger(TweetIdExtractor.class);
     private final String urlTemplate;
     private long startingTweetId;
 
@@ -63,20 +71,20 @@ public class TweetIdExtractor extends Extractor {
         File currentOutputFile = AppUtils.getCurrentOutputFile(1);
         long currentTweetId = startingTweetId;
 
-        System.out.println(String.format("%s Started thread: %1$s", label));
-        System.out.println(label+ " startingTweetId: " + startingTweetId);
+        logger.debug(String.format("%s Started thread: %1$s", label));
+        logger.debug(label + " startingTweetId: " + startingTweetId);
 
-        int reattempt=0;
+        int reattempt = 0;
         // Keep fetching and writing the tweet IDs until the last id, configured in application.properties is fetched
-        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched || reattempt>5;) {
+        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched || reattempt > 5; ) {
             // Only way out is when we get interrupted from outside the thread
             if (Thread.interrupted()) {
-                System.out.println("TweetIdExtractor is interrupted.");
+                logger.warn("TweetIdExtractor is interrupted.");
                 break;
             }
 
             if (currentOutputFile.length() > IConstants.MB_24) {
-                System.out.println(currentOutputFile.getName() + " is overflowing, writing to new file now.");
+                logger.info(currentOutputFile.getName() + " is overflowing, writing to new file now.");
                 try {
                     currentOutputFile = AppUtils.createNewOutputFile(1);
                 } catch (IOException e) {
@@ -86,7 +94,7 @@ public class TweetIdExtractor extends Extractor {
             }
             Document document = null;
 
-            for(int reattempts = 0; reattempts < 3;) {
+            for (int reattempts = 0; reattempts < 3; ) {
                 Connection connection = jsoupWrapper.connect(String.format(urlTemplate, currentTweetId));
                 Connection.Response response = jsoupWrapper.execute(connection);
                 try {
@@ -98,7 +106,7 @@ public class TweetIdExtractor extends Extractor {
                 }
             }
 
-            if(document == null) {
+            if (document == null) {
                 Thread.currentThread().interrupt();
                 continue;
             }
@@ -110,9 +118,9 @@ public class TweetIdExtractor extends Extractor {
                 lastTweetIdFetched = true;
             }
 
-            System.out.println(String.format("%s Found %d new tweets with replies.", label, tweetIds.size()));
+            logger.debug(String.format("%s Found %d new tweets with replies.", label, tweetIds.size()));
 
-            if(tweetIds.size() == 0) {
+            if (tweetIds.size() == 0) {
                 reattempt++;
                 continue;
             }
@@ -123,7 +131,7 @@ public class TweetIdExtractor extends Extractor {
                 e.printStackTrace();
             }
 
-            currentTweetId = Converter.TO_LONG.apply(tweetIds.get(tweetIds.size() - 1));
+            currentTweetId = TO_LONG.apply(tweetIds.get(tweetIds.size() - 1));
         }
 
     }
@@ -141,7 +149,7 @@ public class TweetIdExtractor extends Extractor {
             try {
                 CSVRecord lastRecord = AppUtils.readLastRecord(currentOutputFile);
                 if (lastRecord != null) {
-                    lastTweetId = Converter.TO_LONG.apply(lastRecord.get(0));
+                    lastTweetId = TO_LONG.apply(lastRecord.get(0));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

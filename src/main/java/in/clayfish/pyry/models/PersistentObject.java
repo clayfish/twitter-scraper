@@ -3,6 +3,8 @@ package in.clayfish.pyry.models;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
+import static in.clayfish.pyry.utils.IConstants.*;
+
 /**
  * @author shuklaalok7
  * @since 16/01/16
@@ -25,7 +27,7 @@ public abstract class PersistentObject<T extends PersistentObject> implements Se
                 String value = (String) field.get(this);
 
                 if(value != null && !value.isEmpty()) {
-                    value = value.replaceAll(",", "").replaceAll("\"", "");
+                    value = value.replaceAll(COMMA, BLANK).replaceAll(DOUBLE_QUOTES, BLANK);
                     field.set(this, value);
                 }
             }

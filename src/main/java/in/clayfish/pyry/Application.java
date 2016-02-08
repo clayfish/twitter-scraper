@@ -2,6 +2,8 @@ package in.clayfish.pyry;
 
 import in.clayfish.pyry.utils.AppUtils;
 import in.clayfish.pyry.utils.ApplicationProperties;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -10,8 +12,6 @@ import java.io.IOException;
  * @since 16/01/16
  */
 public class Application {
-    private static String propertiesFile = "config/application.properties";
-
     /**
      * Starting point
      *
@@ -19,7 +19,12 @@ public class Application {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        ApplicationProperties props = new ApplicationProperties(propertiesFile);
+        System.setProperty("log4j.configurationFile", "config/log4j2.xml");
+        System.setProperty("twitter-scraper.configurationFile", "config/application.properties");
+
+        Logger logger = LogManager.getLogger(Application.class);
+
+        ApplicationProperties props = new ApplicationProperties();
 
         if (props.getOutputFolder().exists()) {
             if (!props.getOutputFolder().isDirectory()) {
@@ -33,7 +38,7 @@ public class Application {
         }
 
         AppUtils.initialize(props);
-        System.out.println(String.format("First: %d\tLast: %d", AppUtils.getLatestTweetIdFetched(1), AppUtils.getOldestTweetIdFetched(1)));
+        logger.debug(String.format("First: %d\tLast: %d", AppUtils.getLatestTweetIdFetched(1), AppUtils.getOldestTweetIdFetched(1)));
 
         new TwitterScraper(props).scrape();
     }

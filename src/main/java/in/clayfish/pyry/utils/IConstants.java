@@ -13,6 +13,7 @@ public interface IConstants {
     String MINUS = "-";
     String COMMA = ",";
     String SPACE = " ";
+    String DOUBLE_QUOTES = "\"";
 
     SimpleDateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 
