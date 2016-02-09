@@ -183,8 +183,8 @@ public class ConversationExtractor extends Extractor {
     /**
      * Returns tweet having conversationId not set
      *
-     * @param streamItem
-     * @return
+     * @param streamItem    Found DOM element containing tweet
+     * @return Our persistent tweet object
      */
     private Tweet convertToTweet(Element streamItem) {
         Tweet tweet = new Tweet();

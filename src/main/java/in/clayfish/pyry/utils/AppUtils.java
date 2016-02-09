@@ -30,6 +30,13 @@ public abstract class AppUtils {
     private static AtomicLong counter;
     private static boolean initialized = false;
 
+    /**
+     * It's necessary to call this method before other methods can be called.
+     *
+     * @param props ApplicationProperties to initialize this utility with
+     * @return {@code true}, if it has initialized successfully, {@code false} otherwise
+     * @throws IOException
+     */
     public static synchronized boolean initialize(ApplicationProperties props) throws IOException {
         Objects.requireNonNull(props);
         initialized = true;
@@ -41,7 +48,7 @@ public abstract class AppUtils {
     }
 
     /**
-     * @return
+     * @return An incrementing number to be used as conversationId
      */
     public static synchronized long generateConversationId() {
         if (!initialized) {
@@ -52,10 +59,10 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @param start
-     * @param end
-     * @return
+     * @param file  The CSV file to read
+     * @param start The line number to start reading from
+     * @param end   The line number to read up to
+     * @return List of CSVRecord which are read from the given file
      * @throws IOException
      */
     public static synchronized List<CSVRecord> readCsvFile(final File file, final long start, final long end) throws IOException {
@@ -70,8 +77,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @return
+     * @param file File to read record from
+     * @return The first record from the given file
      * @throws IOException
      */
     public static synchronized CSVRecord readFirstRecord(final File file) throws IOException {
@@ -79,9 +86,9 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @param n
-     * @return
+     * @param file File to read record from
+     * @param n    Line number of the record to read
+     * @return nth record from the given file
      * @throws IOException
      */
     public static synchronized CSVRecord readNthRecord(final File file, long n) throws IOException {
@@ -94,8 +101,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @return
+     * @param file File to read record from
+     * @return The last record from the given file
      * @throws IOException
      */
     public static synchronized CSVRecord readLastRecord(final File file) throws IOException {
@@ -110,9 +117,9 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @param objects
-     * @param <T>
+     * @param file       File to write into
+     * @param objects    objects to write
+     * @param <T>        extends {@link Object}
      * @throws IOException
      */
     public static synchronized <T> void appendToCsv(final File file, final List<T> objects) throws IOException {
@@ -120,11 +127,10 @@ public abstract class AppUtils {
     }
 
     /**
-     *
-     * @param file
-     * @param object
-     * @param append
-     * @param <T>
+     * @param file      File to write into
+     * @param object    object to write
+     * @param append    if {@code true}, will append below the last line in the given file
+     * @param <T>       extends {@link Object}
      * @throws IOException
      */
     public static synchronized <T> void writeToCsv(final File file, final T object, final boolean append) throws IOException {
@@ -148,10 +154,10 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param file
-     * @param objects
-     * @param <T>
-     * @return
+     * @param file    file to write CSV records in
+     * @param objects objects to write in the given file
+     * @param append  Whether to append in the given file
+     * @param <T>     extend Object
      */
     public static synchronized <T> void writeToCsv(final File file, final List<T> objects, final boolean append) throws IOException {
         if (!file.exists()) {
@@ -171,9 +177,9 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @param threadNumber
-     * @return
+     * @param step         {@code 1} or {@code 2}
+     * @param threadNumber Serial of spawned thread
+     * @return newly created file
      * @throws IOException
      */
     public static synchronized File createNewOutputFile(final int step, final int threadNumber) throws IOException {
@@ -200,8 +206,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @return
+     * @param step {@code 1} or {@code 2}
+     * @return newly created output file
      * @throws IOException
      */
     public static synchronized File createNewOutputFile(final int step) throws IOException {
@@ -221,9 +227,9 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @param threadNumber
-     * @return
+     * @param step         {@code 1} or {@code 2}
+     * @param threadNumber The number of thread spawned
+     * @return current output file
      */
     public static synchronized File getCurrentOutputFile(final int step, final int threadNumber) {
         if (!initialized) {
@@ -246,8 +252,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @return
+     * @param step {@code 1} or {@code 2}
+     * @return get output file which is being currently in use
      */
     public static synchronized File getCurrentOutputFile(final int step) {
         if (!initialized) {
@@ -265,8 +271,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @return
+     * @param step {@code 1} or {@code 2}
+     * @return index of current output file
      */
     public static synchronized int getCurrentOutputFileIndex(final int step) {
         if (!initialized) {
@@ -276,8 +282,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param prefix
-     * @return
+     * @param prefix prefix obtained from {@link #getOutputFilePrefix(int)}
+     * @return index of current output file
      */
     public static synchronized int getCurrentOutputFileIndex(final String prefix) {
         if (!initialized) {
@@ -298,8 +304,8 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @return
+     * @param step {@code 1} or {@code 2}
+     * @return latest tweet id which was fetched
      * @throws IOException
      */
     public static synchronized long getLatestTweetIdFetched(final int step) throws IOException {
@@ -323,8 +329,22 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param step
-     * @return
+     * @param file The file to count the lines in
+     * @return Number of lines in the given CSV file
+     * @throws IOException
+     */
+    public static synchronized long getLineCount(File file) throws IOException {
+        Objects.requireNonNull(file);
+        if (file.exists()) {
+            CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
+            return StreamSupport.stream(csvParser.spliterator(), false).count();
+        }
+        return 0;
+    }
+
+    /**
+     * @param step {@code 1} or {@code 2}
+     * @return Get the oldest tweet id fetched
      * @throws IOException
      */
     public static synchronized long getOldestTweetIdFetched(final int step) throws IOException {
@@ -348,10 +368,12 @@ public abstract class AppUtils {
     }
 
     /**
-     * @return
+     * It looks in the second-level-*-*.csv files for the largest conversationId
+     *
+     * @return Last used conversationId
      * @throws IOException
      */
-    public static synchronized long getLastConversationId() throws IOException {
+    private static synchronized long getLastConversationId() throws IOException {
         if (!initialized) {
             throw new IllegalStateException("AppUtils is not initialized. Please call AppUtils.initialize(props) first");
         }
@@ -374,9 +396,11 @@ public abstract class AppUtils {
     }
 
     /**
-     * @param record
-     * @param step
-     * @return
+     * This implementation is not complete for step 2
+     *
+     * @param record The record from which the tweetID is extracted
+     * @param step   {@code 1} or {@code 2} as per {@link ApplicationProperties#getStep()}
+     * @return Extracted tweet id
      */
     private static long getTweetId(final CSVRecord record, final int step) {
         switch (step) {
@@ -408,20 +432,5 @@ public abstract class AppUtils {
             default:
                 throw new IllegalArgumentException("Wrong step value: " + step);
         }
-    }
-
-    /**
-     *
-     * @param file
-     * @return Number of lines in the given CSV file
-     * @throws IOException
-     */
-    public static synchronized long getLineCount(File file) throws IOException {
-        Objects.requireNonNull(file);
-        if(file.exists()) {
-            CSVParser csvParser = new CSVParser(new FileReader(file), CUSTOM);
-            return StreamSupport.stream(csvParser.spliterator(), false).count();
-        }
-        return 0;
     }
 }
