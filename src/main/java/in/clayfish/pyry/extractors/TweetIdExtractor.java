@@ -76,7 +76,7 @@ public class TweetIdExtractor extends Extractor {
 
         int reattempt = 0;
         // Keep fetching and writing the tweet IDs until the last id, configured in application.properties is fetched
-        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched || reattempt > 5; ) {
+        for (boolean lastTweetIdFetched = false; !lastTweetIdFetched && reattempt < 5; ) {
             // Only way out is when we get interrupted from outside the thread
             if (Thread.interrupted()) {
                 logger.warn("TweetIdExtractor is interrupted.");
