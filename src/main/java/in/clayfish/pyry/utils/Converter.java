@@ -45,6 +45,9 @@ public interface Converter<T, U> extends Function<T, U> {
         }
     };
 
+    Converter<Date, Long> DATE_TO_LONG = Date::getTime;
+    Converter<Long, Date> LONG_TO_DATE = Date::new;
+
     Converter<String, Tweet> TO_TWEET = (src) -> new Tweet().fromRecord(src);
 
     static Converter forString(final String name) {

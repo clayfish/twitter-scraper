@@ -202,7 +202,7 @@ public class ConversationExtractor extends Extractor {
         tweet.setUsername(aElement.select(".username").text());
         tweet.setMessage(message.toString());
         tweet.setLocation(streamItem.select(".stream-item-footer .tweet-geo-text").text());
-        tweet.setTimestamp(new Date(Converter.TO_LONG.apply(streamItem.select(".stream-item-header .time .js-relative-timestamp").attr("data-time-ms"))));
+        tweet.setTimestamp(new Date(Converter.TO_LONG.apply(streamItem.select(".stream-item-header .time .js-short-timestamp").attr("data-time-ms"))));
 
         return tweet;
     }

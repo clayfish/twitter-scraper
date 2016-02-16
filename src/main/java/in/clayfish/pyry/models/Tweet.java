@@ -43,7 +43,7 @@ public class Tweet extends PersistentObject<Tweet> {
 
         this.id = TO_LONG.apply(tweetMetadata[0]);
         this.conversationId = TO_LONG.apply(tweetMetadata[1]);
-        this.timestamp = TO_DATE.apply(tweetMetadata[2]);
+        this.timestamp = LONG_TO_DATE.apply(TO_LONG.apply(tweetMetadata[2]));
         this.username = tweetMetadata[3];
         this.user = tweetMetadata[4];
 
@@ -66,7 +66,7 @@ public class Tweet extends PersistentObject<Tweet> {
             e.printStackTrace();
             throw new RuntimeException("Cannot serialize tweet: " + id);
         }
-        return String.format("%d,%d,%s,%s,%s,%s,%s", id, conversationId, DATE_TO_STRING.apply(timestamp), username, user, location,
+        return String.format("%d,%d,%d,%s,%s,%s,%s", id, conversationId, DATE_TO_LONG.apply(timestamp), username, user, location,
                 message.replaceAll(COMMA, BLANK));
     }
 
